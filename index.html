@@ -103,6 +103,96 @@
       from { transform: translateY(100%); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
+  
+    /* ==========================================================================
+       LYST TEMA (LIGHT MODE) STYLES
+       ========================================================================== */
+    html.light-theme {
+      --bg-body: #f1f5f9;
+      --bg-shell: #ffffff;
+      --bg-card: #f8fafc;
+      --bg-input: #ffffff;
+      --border-color: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+    }
+    html.light-theme body {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
+    html.light-theme #app-shell {
+      background-color: #ffffff !important;
+      border-color: #cbd5e1 !important;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
+    }
+    html.light-theme header,
+    html.light-theme nav {
+      background-color: rgba(255, 255, 255, 0.95) !important;
+      border-color: #e2e8f0 !important;
+    }
+    html.light-theme #mode-tab-bar {
+      background-color: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+    }
+    html.light-theme #mode-tab-bar > div {
+      background-color: #e2e8f0 !important;
+      border-color: #cbd5e1 !important;
+    }
+    html.light-theme .bg-slate-950,
+    html.light-theme .bg-slate-900,
+    html.light-theme .bg-slate-900\/95,
+    html.light-theme .bg-slate-900\/60,
+    html.light-theme .bg-slate-850 {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    html.light-theme .bg-slate-800,
+    html.light-theme .bg-slate-800\/90,
+    html.light-theme .bg-slate-800\/70,
+    html.light-theme .bg-slate-800\/80,
+    html.light-theme .bg-slate-800\/60 {
+      background-color: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    html.light-theme .bg-slate-700,
+    html.light-theme .bg-slate-700\/50,
+    html.light-theme .bg-slate-700\/40 {
+      background-color: #e2e8f0 !important;
+      color: #334155 !important;
+    }
+    html.light-theme .text-white {
+      color: #0f172a !important;
+    }
+    html.light-theme .text-slate-200,
+    html.light-theme .text-slate-300 {
+      color: #1e293b !important;
+    }
+    html.light-theme .text-slate-400 {
+      color: #475569 !important;
+    }
+    html.light-theme .text-slate-500 {
+      color: #64748b !important;
+    }
+    html.light-theme input,
+    html.light-theme textarea,
+    html.light-theme select {
+      background-color: #ffffff !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+    html.light-theme input::placeholder,
+    html.light-theme textarea::placeholder {
+      color: #94a3b8 !important;
+    }
+    html.light-theme .border-slate-800,
+    html.light-theme .border-slate-700,
+    html.light-theme .border-slate-700\/80,
+    html.light-theme .border-slate-700\/70 {
+      border-color: #e2e8f0 !important;
+    }
+
   </style>
 </head>
 <body class="min-h-full flex flex-col items-center justify-start bg-slate-950 font-sans p-0 sm:p-4 md:p-6 select-none transition-all duration-300">
@@ -176,7 +266,13 @@
 
 
         <!-- Order / Returns history shortcut -->
-        <button onclick="switchScreen('screen-history')" title="Se historik"
+                <!-- Theme Switcher (Lys / Mørk persistent) -->
+        <button id="theme-toggle-btn" onclick="toggleTheme()" title="Skift tema (Lys / Mørk)"
+          class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 active:scale-95 transition">
+          <i id="theme-toggle-icon" data-lucide="sun" class="w-4 h-4"></i>
+        </button>
+
+<button onclick="switchScreen('screen-history')" title="Se historik"
           class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 active:scale-95 transition relative">
           <i data-lucide="clock" class="w-4 h-4"></i>
           <span id="order-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-[#52A633] text-[10px] font-bold text-white rounded-full flex items-center justify-center">0</span>
@@ -595,9 +691,14 @@
 
             <!-- The Big Material Textarea -->
             <div class="relative">
-              <textarea id="order-materials" rows="5"
+              <textarea id="order-materials" rows="5" oninput="checkErfaPriceSuggestion()"
                 placeholder="Skriv, indtal eller vedhæft Excel/materialeliste nedenfor... F.eks.:&#10;• 10 pk Würth 4,5x60 terrasseskruer&#10;• 15 stk 45x95 reglar à 4,2 meter&#10;• 2 ruller dampspærre 0,20mm&#10;• Eller vedhæft 'Spær & Træliste.xlsx' direkte"
                 class="w-full p-3.5 bg-slate-800/95 border-2 border-slate-700 focus:border-[#52A633] rounded-2xl text-white placeholder-slate-500 text-sm font-medium focus:outline-none transition leading-relaxed"></textarea>
+            </div>
+
+            <!-- Historisk Vejledende Erfaringspris Container (Krav 3) -->
+            <div id="erfa-price-suggestion-container" class="space-y-1.5">
+              <!-- Dynamically rendered via checkErfaPriceSuggestion() -->
             </div>
 
             <!-- Quick Template Chips (1-click insert) -->
@@ -767,14 +868,22 @@
             </div>
           </div>
 
-          <!-- 7. THE BIG GREEN TOUCH-FRIENDLY CTA BUTTON -->
-          <div class="pt-2">
-            <button type="submit" id="submit-order-btn"
-              class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-black text-lg shadow-xl shadow-emerald-950/60 border border-emerald-400/40 flex items-center justify-center space-x-3 active:scale-[0.98] transition cursor-pointer">
-              <i data-lucide="send" class="w-6 h-6"></i>
-              <span class="tracking-wide">SEND BESTILLING NU</span>
-            </button>
-            <p class="text-center text-[11px] text-slate-400 mt-2">
+          <!-- Action Buttons: Send Bestilling & Gem som ENO Kladde -->
+          <div class="pt-2 space-y-2">
+            <div class="flex flex-col sm:flex-row gap-2">
+              <button type="button" onclick="saveCurrentAsEnoDraft()"
+                class="sm:w-1/3 py-3.5 px-4 rounded-2xl bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 border border-amber-500/50 font-bold text-sm flex items-center justify-center space-x-2 active:scale-[0.98] transition cursor-pointer"
+                title="Gem opmålte materialer som kladde - Frigives senere når pladsen er klar">
+                <i data-lucide="clock-alert" class="w-5 h-5 text-amber-400"></i>
+                <span>Gem som ENO</span>
+              </button>
+              <button type="submit" id="submit-order-btn"
+                class="flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-black text-lg shadow-xl shadow-emerald-950/60 border border-emerald-400/40 flex items-center justify-center space-x-3 active:scale-[0.98] transition cursor-pointer">
+                <i data-lucide="send" class="w-6 h-6"></i>
+                <span class="tracking-wide">SEND BESTILLING NU</span>
+              </button>
+            </div>
+            <p class="text-center text-[11px] text-slate-400 mt-1">
               ⚡ Sender automatisk mail til leverandør & logger i E-komplet
             </p>
           </div>
@@ -1184,7 +1293,32 @@
 
       <!-- ========================================================================= -->
       <!-- SCREEN 6: ADMIN & PROJEKTLEDER PANEL (Marcus Dashboard) -->
-      <!-- SCREEN 6: ADMIN & PROJEKTLEDER PANEL -->
+            <!-- ========================================================================= -->
+      <!-- SCREEN: ENO (EFTER NÆRMERE ORDRE) - Opmålte kladder klar til frigivelse -->
+      <!-- ========================================================================= -->
+      <section id="screen-eno" class="hidden flex-col space-y-4">
+        <div class="flex items-center justify-between pt-1">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                ENO Kladdefunktion
+              </span>
+              <span id="eno-count-pill" class="text-xs text-slate-400">0 kladder gemt</span>
+            </div>
+            <h2 class="text-2xl font-black text-white tracking-tight mt-1">Efter Nærmere Ordre (ENO)</h2>
+            <p class="text-xs text-slate-400">Opmålte materialer gemt som bestillingsklar kladde. Frigiv og send med ét klik når pladsen er klar.</p>
+          </div>
+          <button onclick="switchScreen('screen-order')" class="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-xl border border-slate-700">
+            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <div id="eno-drafts-list" class="space-y-3">
+          <!-- Rendered dynamically via renderEnoScreen() -->
+        </div>
+      </section>
+
+<!-- SCREEN 6: ADMIN & PROJEKTLEDER PANEL -->
       <section id="screen-admin" class="hidden flex-col space-y-6">
         
         <!-- Dashboard Top Header -->
@@ -1606,7 +1740,14 @@
 
 
       <!-- History Tab -->
-      <button onclick="switchScreen('screen-history')" id="nav-btn-history" class="flex flex-col items-center space-y-1 text-slate-400 hover:text-slate-200 font-semibold text-[11px] transition active:scale-95">
+            <!-- ENO Kladder Tab -->
+      <button onclick="switchScreen('screen-eno')" id="nav-btn-eno" class="flex flex-col items-center space-y-1 text-slate-400 hover:text-amber-400 font-semibold text-[11px] transition active:scale-95 relative">
+        <i data-lucide="clock-alert" class="w-5 h-5"></i>
+        <span>ENO Kladde</span>
+        <span id="eno-badge-counter" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-[10px] font-bold text-white rounded-full flex items-center justify-center">0</span>
+      </button>
+
+<button onclick="switchScreen('screen-history')" id="nav-btn-history" class="flex flex-col items-center space-y-1 text-slate-400 hover:text-slate-200 font-semibold text-[11px] transition active:scale-95">
         <i data-lucide="clipboard-list" class="w-5 h-5"></i>
         <span>Historik</span>
       </button>
@@ -1627,24 +1768,25 @@
     // ==========================================
     // INITIAL STATE & MOCK DATABASE
     // ==========================================
-  const DEFAULT_CASES = [
-      { id: "6374", number: "Sag 6374", name: "Fjernvarme Horsens - om og tilbygning kontrolrum", type: "Entreprise", address: "Endelavevej 7, 8700 Horsens", manager: "Marcus Dalland Braae", popular: true },
-      { id: "6375", number: "Sag 6375", name: "Fjernvarme Horsens - kontrolrum (ekstra)", type: "Entreprise", address: "Endelavevej 7, 8700 Horsens", manager: "Marcus Dalland Braae", popular: true },
+    const DEFAULT_CASES = [
+      { id: "6374", number: "Sag 6374", name: "Fjernvarme Horsens - kontrolrum", type: "Entreprise", address: "Endelavevej 7, 8700 Horsens", manager: "Marcus Dalland Braae", popular: true },
+      { id: "6375", number: "Sag 6375", name: "Fjernvarme Horsens - ekstraarbejder", type: "Entreprise", address: "Endelavevej 7, 8700 Horsens", manager: "Marcus Dalland Braae", popular: true },
       { id: "6384", number: "Sag 6384", name: "Velux - bygning K tagudskiftning", type: "Entreprise", address: "Ryvej 21, 8752 Østbirk", manager: "Allan V.", popular: true },
-      { id: "6385", number: "Sag 6385", name: "Velux - bygning K tagudskiftning (ekstra)", type: "Entreprise", address: "Ryvej 21, 8752 Østbirk", manager: "Allan V.", popular: true },
       { id: "6349", number: "Sag 6349", name: "Vesterlund Friplejehjem", type: "Entreprise", address: "Dørkenvej 34, 7323 Give", manager: "Troels Nortvig", popular: true },
-      { id: "6350", number: "Sag 6350", name: "Vesterlund Friplejehjem (ekstra)", type: "Entreprise", address: "Dørkenvej 34, 7323 Give", manager: "Troels Nortvig", popular: true },
       { id: "6348", number: "Sag 6348", name: "Steel Production - Ny hal", type: "Entreprise", address: "Islandsvej 25, 8700 Horsens", manager: "Marcus Dalland Braae", popular: true },
       { id: "6336", number: "Sag 6336", name: "SØP Horsens - ny politistation", type: "Entreprise", address: "Holmboes Allé 2, 8700 Horsens", manager: "Allan V.", popular: true },
-      { id: "6337", number: "Sag 6337", name: "SØP Horsens - ny politistation (ekstra)", type: "Entreprise", address: "Holmboes Allé 2, 8700 Horsens", manager: "Allan V.", popular: true },
       { id: "6297", number: "Sag 6297", name: "Samlingspunktet - Gamle Rådhus", type: "Entreprise", address: "Søndergade 26, 8700 Horsens", manager: "Marcus Dalland Braae", popular: true },
       { id: "6381", number: "Sag 6381", name: "Facaderenovering Østerhåbsskolen", type: "Entreprise", address: "Østerhåbvej 85, 8700 Horsens", manager: "Allan V.", popular: true },
-      { id: "6382", number: "Sag 6382", name: "Facaderenovering Østerhåbsskolen (ekstra)", type: "Entreprise", address: "Østerhåbvej 85, 8700 Horsens", manager: "Allan V.", popular: true },
       { id: "6393", number: "Sag 6393", name: "Havnen Horsens - gipsvægge og døre", type: "Entreprise", address: "Nordhavnsvej 1, 8700 Horsens", manager: "Marcus Dalland Braae", popular: true },
       { id: "6397", number: "Sag 6397", name: "Jem og fix Hobro - hegn", type: "Entreprise", address: "Søndergade 10, 9500 Hobro", manager: "Marcus Dalland Braae", popular: true },
-      { id: "3054", number: "Sag 3054", name: "Sikavej 30 - utæt tag/vandskade", type: "Service", address: "Sikavej 30, 7160 Tørring", manager: "Allan V.", popular: false },
-      { id: "3053", number: "Sag 3053", name: "Fængslet Horsens - rep loft", type: "Service", address: "Fussingsvej 8, 8700 Horsens", manager: "Marcus Dalland Braae", popular: false },
-      { id: "3052", number: "Sag 3052", name: "Roesgaard - oliering af bordplader", type: "Service", address: "Sønderbrogade 16, 8700 Horsens", manager: "Thomas Nortvig", popular: false }
+      { id: "3058", number: "Sag 3058", name: "Vesterlund - indbrud 1", type: "Service", address: "Fuglevangsvej 47, 8700 Horsens", manager: "Troels Nortvig", popular: true },
+      { id: "3057", number: "Sag 3057", name: "Flegmade 24 - køkkenbordplade fastgøres", type: "Service", address: "Flegmade 24, 7100 Vejle", manager: "FG", popular: false },
+      { id: "3056", number: "Sag 3056", name: "Dansk Retursystem - 1 års gennemgang", type: "Service", address: "Fabersvej 15, 7500 Holstebro", manager: "Allan V.", popular: false },
+      { id: "3054", number: "Sag 3054", name: "Sikavej 30 - utæt tag/vandskade indvendig", type: "Service", address: "Sikavej 30, 7160 Tørring", manager: "Allan V.", popular: false },
+      { id: "3053", number: "Sag 3053", name: "Fængslet Horsens - loftsalen rep loft", type: "Service", address: "Fussingsvej 8, 8700 Horsens", manager: "Marcus Dalland Braae", popular: false },
+      { id: "3052", number: "Sag 3052", name: "Roesgaard - oliering af bordplader", type: "Service", address: "Sønderbrogade 16, 8700 Horsens", manager: "Thomas Nortvig", popular: false },
+      { id: "3046", number: "Sag 3046", name: "Bjerrevej - maling af skur", type: "Service", address: "Fuglevangsvej 47, 8700 Horsens", manager: "Marcus Dalland Braae", popular: false },
+      { id: "3039", number: "Sag 3039", name: "MSCH Copenhagen - Truckværn og rep facade", type: "Service", address: "Artvej 1, 7100 Vejle", manager: "Marcus Dalland Braae", popular: false }
     ];
 
     // MEDARBEJDERE & PROFILER (Krav 1)
@@ -2367,12 +2509,14 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
     // INITIALIZATION
     // ==========================================
     document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
       renderCasesList(DEFAULT_CASES);
       renderSupplierSelectionCards();
       renderUserDropdown();
       updateActiveUserUI();
       renderAdminDashboard();
       updateHistoryBadge();
+      updateEnoBadge();
       initSpeechRecognition();
       lucide.createIcons();
     });
@@ -2448,7 +2592,7 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
     // SCREEN NAVIGATION & FLOW CONTROL
     // ==========================================
     function switchScreen(screenId) {
-      const screens = ['screen-case', 'screen-supplier', 'screen-order', 'screen-return-form', 'screen-receipt', 'screen-history', 'screen-admin'];
+      const screens = ['screen-case', 'screen-supplier', 'screen-order', 'screen-return-form', 'screen-receipt', 'screen-history', 'screen-admin', 'screen-eno'];
       screens.forEach(s => {
         const el = document.getElementById(s);
         if (el) el.classList.add('hidden');
@@ -2456,6 +2600,10 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
 
       const target = document.getElementById(screenId);
       if (target) target.classList.remove('hidden');
+
+      if (screenId === 'screen-eno') {
+        renderEnoScreen();
+      }
 
       // Update progress dots
       updateProgressDots(screenId);
@@ -2548,10 +2696,15 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
         btn.className = 'flex flex-col items-center space-y-1 text-slate-400 hover:text-slate-200 font-semibold text-[11px] transition active:scale-95';
       });
 
+      const navEno = document.getElementById('nav-btn-eno');
+      if (navEno) navEno.className = 'flex flex-col items-center space-y-1 text-slate-400 hover:text-slate-200 font-semibold text-[11px] transition active:scale-95 relative';
+
       if (screenId === 'screen-admin') {
         navAdmin.className = 'flex flex-col items-center space-y-1 text-[#52A633] font-bold text-[11px] transition active:scale-95 relative';
       } else if (screenId === 'screen-history') {
         navHistory.className = 'flex flex-col items-center space-y-1 text-[#00864E] font-bold text-[11px] transition active:scale-95';
+      } else if (screenId === 'screen-eno') {
+        if (navEno) navEno.className = 'flex flex-col items-center space-y-1 text-amber-400 font-bold text-[11px] transition active:scale-95 relative';
       } else if (appMode === 'return') {
         navReturn.className = 'flex flex-col items-center space-y-1 text-amber-500 font-bold text-[11px] transition active:scale-95';
       } else {
@@ -3736,6 +3889,379 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
     // ==========================================
     // ADMIN DASHBOARD & CONTROLS (MARCUS VIEW)
     // ==========================================
+    
+    // ==========================================================================
+    // HISTORISK ERFARINGSPRIS KATALOG & LOGIK (Krav 3)
+    // ==========================================================================
+    const erfaPriceCatalog = {
+      'skrue': {
+        keywords: ['skrue', 'terrasse', '4,5x60', 'montage', 'spånskrue'],
+        name: 'Würth 4,5x60 Terrasseskruer',
+        unit: 'pk (250 stk)',
+        lastPurchasePrice: 139.00,
+        avgPrice: 142.50,
+        lastSupplier: 'Würth Horsens',
+        lastDate: '18.09.2026',
+        listPrice: 215.00
+      },
+      'reglar': {
+        keywords: ['reglar', '45x95', 'spærtræ', 'c24', 'lægter', 'konstruktionstræ'],
+        name: '45x95 C24 Konstruktionstræ / Reglar',
+        unit: 'meter',
+        lastPurchasePrice: 17.80,
+        avgPrice: 18.50,
+        lastSupplier: 'STARK Horsens',
+        lastDate: '12.09.2026',
+        listPrice: 28.50
+      },
+      'gips': {
+        keywords: ['gips', 'fermacell', '13mm', 'fibergips', 'vådrumsgips'],
+        name: '13mm Fermacell Fibergipsplade',
+        unit: 'plade',
+        lastPurchasePrice: 99.50,
+        avgPrice: 104.00,
+        lastSupplier: 'Bygma Horsens',
+        lastDate: '05.09.2026',
+        listPrice: 155.00
+      },
+      'dampspærre': {
+        keywords: ['dampspærre', 'folie', '0,20mm', 'tape', 'alutape'],
+        name: '0,20mm PE Dampspærrefolie 2x50m',
+        unit: 'rulle',
+        lastPurchasePrice: 385.00,
+        avgPrice: 398.00,
+        lastSupplier: 'Bygma',
+        lastDate: '02.09.2026',
+        listPrice: 590.00
+      },
+      'isolering': {
+        keywords: ['isolering', 'rockwool', 'isover', 'formstykker', '95mm', '195mm'],
+        name: '95mm Flexibatts A-isolering',
+        unit: 'pk',
+        lastPurchasePrice: 188.00,
+        avgPrice: 195.00,
+        lastSupplier: 'XL-BYG',
+        lastDate: '28.08.2026',
+        listPrice: 299.00
+      }
+    };
+
+    function checkErfaPriceSuggestion() {
+      const container = document.getElementById('erfa-price-suggestion-container');
+      const val = (document.getElementById('order-materials').value || '').toLowerCase();
+      if (!container) return;
+
+      if (!val || val.trim().length < 3) {
+        container.innerHTML = '';
+        return;
+      }
+
+      // Check matching items
+      let matched = [];
+      for (const [key, item] of Object.entries(erfaPriceCatalog)) {
+        if (item.keywords.some(kw => val.includes(kw))) {
+          matched.push(item);
+        }
+      }
+
+      if (matched.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+
+      container.innerHTML = matched.slice(0, 2).map(item => {
+        const savingsPct = Math.round((1 - (item.lastPurchasePrice / item.listPrice)) * 100);
+        return `
+          <div class="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-2xl flex items-center justify-between text-xs animate-in fade-in duration-200">
+            <div class="flex items-center space-x-2.5 overflow-hidden">
+              <div class="w-7 h-7 rounded-lg bg-[#00864E]/30 text-[#52A633] flex items-center justify-center shrink-0">
+                <i data-lucide="trending-down" class="w-4 h-4"></i>
+              </div>
+              <div class="truncate">
+                <div class="text-white font-bold flex items-center space-x-1.5 truncate">
+                  <span class="truncate">Vejl. erfaringspris: ca. ${item.lastPurchasePrice.toFixed(2)} DKK / ${item.unit}</span>
+                  <span class="px-1.5 py-0.2 bg-emerald-500/20 text-emerald-300 font-bold text-[9px] rounded shrink-0">-${savingsPct}% aftale</span>
+                </div>
+                <span class="text-slate-400 text-[11px] block truncate">Baseret på seneste køb hos ${item.lastSupplier} (${item.lastDate})</span>
+              </div>
+            </div>
+            <button type="button" onclick="appendMaterialTag('${item.name}')" 
+              class="ml-2 px-2.5 py-1 bg-[#00864E] hover:bg-[#52A633] text-white rounded-lg font-bold text-[10px] shrink-0 active:scale-95 transition">
+              Brug
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    // ==========================================================================
+    // THEME SWITCHER: LYS / MØRK MED PERSISTENT LOCALSTORAGE (Krav 5)
+    // ==========================================================================
+    function initTheme() {
+      const savedTheme = localStorage.getItem('nortvig_theme') || 'dark';
+      applyTheme(savedTheme);
+    }
+
+    function toggleTheme() {
+      const isLight = document.documentElement.classList.contains('light-theme');
+      const nextTheme = isLight ? 'dark' : 'light';
+      applyTheme(nextTheme);
+    }
+
+    function applyTheme(theme) {
+      const root = document.documentElement;
+      const toggleIcon = document.getElementById('theme-toggle-icon');
+      const toggleBtn = document.getElementById('theme-toggle-btn');
+
+      if (theme === 'light') {
+        root.classList.add('light-theme');
+        if (toggleIcon) toggleIcon.setAttribute('data-lucide', 'moon');
+        if (toggleBtn) {
+          toggleBtn.title = 'Skift til Mørkt tema';
+          toggleBtn.className = 'p-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 border border-slate-300 active:scale-95 transition';
+        }
+      } else {
+        root.classList.remove('light-theme');
+        if (toggleIcon) toggleIcon.setAttribute('data-lucide', 'sun');
+        if (toggleBtn) {
+          toggleBtn.title = 'Skift til Lyst tema';
+          toggleBtn.className = 'p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 active:scale-95 transition';
+        }
+      }
+
+      localStorage.setItem('nortvig_theme', theme);
+      lucide.createIcons();
+    }
+
+    // ==========================================================================
+    // ENO (EFTER NÆRMERE ORDRE) KLADDEFUNKTION (Krav 4)
+    // ==========================================================================
+    let enoDrafts = JSON.parse(localStorage.getItem('nortvig_eno_drafts') || '[]');
+
+    function updateEnoBadge() {
+      const badge = document.getElementById('eno-badge-counter');
+      const pill = document.getElementById('eno-count-pill');
+      const count = enoDrafts.length;
+
+      if (badge) {
+        badge.textContent = count;
+        if (count > 0) badge.classList.remove('hidden');
+        else badge.classList.add('hidden');
+      }
+      if (pill) {
+        pill.textContent = `${count} ${count === 1 ? 'kladde' : 'kladder'} gemt`;
+      }
+    }
+
+    function saveCurrentAsEnoDraft() {
+      const materials = (document.getElementById('order-materials').value || '').trim();
+      if (!materials) {
+        alert('Udfyld venligst materialer før du gemmer som ENO-kladde.');
+        return;
+      }
+
+      const activeUser = getActiveUser() || { name: 'Marcus Dalland Braae', phone: '+45 22 88 14 00', email: 'mdb@nortvig.dk' };
+      const currentCase = currentFlow.case || DEFAULT_CASES[0];
+      const currentSupplier = currentFlow.supplier || DEFAULT_SUPPLIERS['Bygma'];
+      const deliveryAddress = document.getElementById('order-address').value || currentCase.address;
+      const deliveryTime = document.getElementById('order-time-custom').value || 'Efter Nærmere Ordre';
+      const note = document.getElementById('order-note').value || '';
+
+      const draft = {
+        id: 'ENO-' + Date.now().toString().slice(-6),
+        createdAt: new Date().toLocaleDateString('da-DK', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
+        author: activeUser.name,
+        authorEmail: activeUser.email,
+        authorPhone: activeUser.phone,
+        case: currentCase,
+        supplier: currentSupplier,
+        materials: materials,
+        deliveryAddress: deliveryAddress,
+        deliveryTime: deliveryTime,
+        note: note,
+        attachments: currentFlow.attachments || [],
+        status: 'Klar til frigivelse (ENO)'
+      };
+
+      enoDrafts.unshift(draft);
+      localStorage.setItem('nortvig_eno_drafts', JSON.stringify(enoDrafts));
+      updateEnoBadge();
+      renderEnoScreen();
+      showToast('Gemt som ENO!', `Opmåling ${draft.id} for ${currentCase.number} er gemt som kladde.`);
+      switchScreen('screen-eno');
+    }
+
+    function renderEnoScreen() {
+      const list = document.getElementById('eno-drafts-list');
+      if (!list) return;
+
+      updateEnoBadge();
+
+      if (enoDrafts.length === 0) {
+        list.innerHTML = `
+          <div class="p-8 text-center text-slate-400 bg-slate-900/60 rounded-3xl border border-slate-800">
+            <i data-lucide="clock-alert" class="w-12 h-12 text-amber-500/50 mx-auto mb-2"></i>
+            <h3 class="font-bold text-white text-base">Ingen ENO kladder endnu</h3>
+            <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+              Når du eller svendene opmåler materialer, kan I gemme dem som "Efter Nærmere Ordre" i stedet for at sende med det samme.
+            </p>
+            <button onclick="switchScreen('screen-order')" class="mt-4 px-4 py-2 bg-[#00864E] hover:bg-[#52A633] text-white rounded-xl text-xs font-bold transition">
+              Opret ny opmåling
+            </button>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      list.innerHTML = enoDrafts.map(d => `
+        <div class="p-4 rounded-2xl bg-slate-900 border-2 border-amber-500/40 shadow-lg space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center space-x-2 truncate">
+              <span class="font-bold text-white text-sm truncate">${d.case.number} - ${d.case.name}</span>
+              <span class="text-slate-500">|</span>
+              <span class="text-xs font-bold text-amber-400 shrink-0">${d.supplier.name}</span>
+            </div>
+            <span class="font-mono text-xs font-bold text-amber-300 shrink-0">${d.id}</span>
+          </div>
+
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs space-y-1.5 font-mono">
+            <div class="text-slate-300 whitespace-pre-line leading-relaxed">${d.materials}</div>
+            <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+              <span>📍 ${d.deliveryAddress}</span>
+              <span>👤 ${d.author}</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-1">
+            <span class="text-[11px] text-slate-500">Oprettet: ${d.createdAt}</span>
+            <div class="flex items-center space-x-2">
+              <button onclick="deleteEnoDraft('${d.id}')"
+                class="p-2 text-slate-400 hover:text-red-400 bg-slate-800 hover:bg-slate-700 rounded-xl border border-slate-700 transition"
+                title="Slet kladde">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+              <button onclick="dispatchEnoDraft('${d.id}')"
+                class="px-4 py-2 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-md active:scale-95 transition">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                <span>Frigiv & Send Bestilling</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function deleteEnoDraft(draftId) {
+      if (!confirm('Er du sikker på, at du vil slette denne ENO-kladde?')) return;
+      enoDrafts = enoDrafts.filter(d => d.id !== draftId);
+      localStorage.setItem('nortvig_eno_drafts', JSON.stringify(enoDrafts));
+      renderEnoScreen();
+      showToast('Kladde slettet', `ENO ${draftId} er slettet.`);
+    }
+
+    function dispatchEnoDraft(draftId) {
+      const draft = enoDrafts.find(d => d.id === draftId);
+      if (!draft) return;
+
+      currentFlow.case = draft.case;
+      currentFlow.supplier = draft.supplier;
+      currentFlow.materials = draft.materials;
+      currentFlow.address = draft.deliveryAddress;
+      currentFlow.time = 'I morgen tidlig kl. 07:00 (Frigivet fra ENO)';
+      currentFlow.sender = draft.author;
+      currentFlow.phone = draft.authorPhone;
+      currentFlow.note = draft.note || '';
+      currentFlow.timestamp = new Date().toISOString();
+      currentFlow.type = 'order';
+
+      const randomCode = Math.floor(1000 + Math.random() * 9000);
+      currentFlow.id = `NTV-2026-${randomCode}`;
+
+      saveItemToStorage({ ...currentFlow });
+      renderReceipt(currentFlow);
+
+      // Fjern fra ENO kladder
+      enoDrafts = enoDrafts.filter(d => d.id !== draftId);
+      localStorage.setItem('nortvig_eno_drafts', JSON.stringify(enoDrafts));
+      updateEnoBadge();
+
+      showToast('Bestilling Afsendt!', `ENO kladde ${draft.id} er nu frigivet og sendt som ordre ${currentFlow.id}!`);
+      switchScreen('screen-receipt');
+    }
+
+    // ==========================================================================
+    // DIREKTE LINK TIL E-KOMPLET KØBSFAKTURA & 1-KLIK OUTLOOK INDSIGELSE (Krav 1 & 2)
+    // ==========================================================================
+    function getEkompletInvoiceUrl(invoiceNo, eKompletId) {
+      if (eKompletId) {
+        return `https://app.e-komplet.dk/#/invoices/purchase/${encodeURIComponent(eKompletId)}`;
+      }
+      return `https://app.e-komplet.dk/#/invoices/purchase?search=${encodeURIComponent(invoiceNo)}`;
+    }
+
+    function openEkompletInvoice(invoiceNo, eKompletId) {
+      const url = getEkompletInvoiceUrl(invoiceNo, eKompletId);
+      window.open(url, '_blank', 'noopener,noreferrer');
+      showToast('E-komplet Bilag', `Åbner købsfaktura ${invoiceNo} i E-komplet.`);
+    }
+
+    function openProtestMailDraft(discId) {
+      const d = adminDiscrepancies.find(x => x.id === discId);
+      if (!d) return;
+
+      const activeUser = getActiveUser() || { name: 'Marcus Dalland Braae', phone: '+45 22 88 14 00', email: 'mdb@nortvig.dk' };
+      const supInfo = DEFAULT_SUPPLIERS[d.supplier] || { email: 'faktura@' + d.supplier.toLowerCase().replace(/[^a-z]/g, '') + '.dk' };
+      const recipient = supInfo.email;
+      const subject = `Indsigelse mod faktura ${d.invoiceNo} - ${d.case} - A/S Nortvig`;
+
+      const body = 
+`Hej ${d.supplier},
+
+Vi har ved vores 3-vejs modtagelseskontrol konstateret en uoverensstemmelse på faktura ${d.invoiceNo} vedrørende ${d.case}.
+
+FAKTURADETALJER:
+• Fakturanummer: ${d.invoiceNo}
+• Vores sagsnr / byggeplads: ${d.case}
+• Bestilt mængde / aftale: ${d.ordered}
+• Faktureret: ${d.invoiced}
+• Konstateret differens: ${d.priceDiff}
+
+ÅRSAG TIL INDSIGELSE:
+${d.issueDesc}
+
+Fakturaen er sat i bero i vores økonomisystem (E-komplet). Vi beder venligst om en korrigeret faktura eller kreditnota på differencen (${d.priceDiff}) snarest muligt.
+
+Med venlig hilsen,
+${activeUser.name}
+A/S Nortvig
+Tlf: ${activeUser.phone}
+E-mail: ${activeUser.email}
+Fuglevangsvej 47, 8700 Horsens`;
+
+      // 1. Outlook Web Deep Link
+      const outlookWebUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(recipient)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      
+      // 2. Desktop Mailto Fallback
+      const mailtoUrl = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+      // Åbn Outlook Web i ny fane eller desktop klient
+      try {
+        const win = window.open(outlookWebUrl, '_blank');
+        if (!win || win.closed || typeof win.closed === 'undefined') {
+          window.location.href = mailtoUrl;
+        }
+      } catch (e) {
+        window.location.href = mailtoUrl;
+      }
+
+      showToast('Outlook Indsigelse Klargjort', `Kladde for faktura ${d.invoiceNo} åbnet i Outlook.`);
+    }
+
     function renderAdminDashboard() {
       renderAdminUsers();
       renderAdminSuppliers();
@@ -3809,15 +4335,31 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
               <span class="text-[11px] text-slate-500">${d.date}</span>
               
               <div class="flex items-center space-x-2">
+                <!-- E-komplet Købsfaktura Link (Krav 1) -->
+                <button type="button" onclick="openEkompletInvoice('${d.invoiceNo}', '${d.eKompletId || ''}')"
+                  class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/40 rounded-xl text-xs font-bold flex items-center space-x-1 active:scale-95 transition"
+                  title="Åbn købsbilaget direkte i E-komplet">
+                  <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                  <span>E-komplet</span>
+                </button>
+
+                <!-- 1-klik Outlook Indsigelsesmail (Krav 2) -->
+                <button type="button" onclick="openProtestMailDraft('${d.id}')"
+                  class="px-2.5 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 rounded-xl text-xs font-bold flex items-center space-x-1 active:scale-95 transition"
+                  title="Opret 1-klik indsigelsesmail i Outlook">
+                  <i data-lucide="mail-warning" class="w-3.5 h-3.5"></i>
+                  <span>Outlook Indsigelse</span>
+                </button>
+
                 ${!isRejected ? `
                   <button onclick="rejectInEkomplet('${d.id}', '${d.invoiceNo}')"
-                    class="px-3.5 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-md active:scale-95 transition">
+                    class="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold flex items-center space-x-1 shadow-md active:scale-95 transition">
                     <i data-lucide="x-circle" class="w-3.5 h-3.5"></i>
-                    <span>Afvis i E-komplet</span>
+                    <span>Afvis</span>
                   </button>
                 ` : `
                   <span class="text-xs text-emerald-400 font-semibold flex items-center">
-                    <i data-lucide="check" class="w-3.5 h-3.5 mr-1"></i> Logget i E-komplet
+                    <i data-lucide="check" class="w-3.5 h-3.5 mr-1"></i> Afvist
                   </span>
                 `}
               </div>
