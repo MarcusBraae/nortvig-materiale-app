@@ -1627,13 +1627,24 @@
     // ==========================================
     // INITIAL STATE & MOCK DATABASE
     // ==========================================
-    const DEFAULT_CASES = [
-      { id: '2401', number: 'Sag 2401', name: 'Risskov Strandvej', type: 'Bolig', address: 'Risskov Strandvej 42, 8240 Risskov', manager: 'Marcus Dalland Braae', popular: true },
-      { id: '2380', number: 'Sag 2380', name: 'Brandstationen Aarhus C', type: 'Erhverv', address: 'Ny Munkegade 15, 8000 Aarhus C', manager: 'Mikkel H.', popular: true },
-      { id: '2415', number: 'Sag 2415', name: 'Viborgvej Erhvervsdomicil', type: 'Erhverv', address: 'Viborgvej 112, 8210 Aarhus V', manager: 'Marcus Dalland Braae', popular: true },
-      { id: '2392', number: 'Sag 2392', name: 'Silkeborg Søvilla', type: 'Bolig', address: 'Sejsvej 18, 8600 Silkeborg', manager: 'Jens K.', popular: false },
-      { id: '2420', number: 'Sag 2420', name: 'Skanderborg Bakker', type: 'Bolig', address: 'Bakke Allé 9, 8660 Skanderborg', manager: 'Marcus Dalland Braae', popular: false },
-      { id: '2365', number: 'Sag 2365', name: 'Havneholmen Aarhus Ø', type: 'Erhverv', address: 'Bernhardt Jensens Blvd 8, 8000 Aarhus C', manager: 'Henrik P.', popular: false }
+  const DEFAULT_CASES = [
+      { id: "6374", number: "Sag 6374", name: "Fjernvarme Horsens - om og tilbygning kontrolrum", type: "Entreprise", address: "Endelavevej 7, 8700 Horsens", manager: "Marcus Dalland Braae", popular: true },
+      { id: "6375", number: "Sag 6375", name: "Fjernvarme Horsens - kontrolrum (ekstra)", type: "Entreprise", address: "Endelavevej 7, 8700 Horsens", manager: "Marcus Dalland Braae", popular: true },
+      { id: "6384", number: "Sag 6384", name: "Velux - bygning K tagudskiftning", type: "Entreprise", address: "Ryvej 21, 8752 Østbirk", manager: "Allan V.", popular: true },
+      { id: "6385", number: "Sag 6385", name: "Velux - bygning K tagudskiftning (ekstra)", type: "Entreprise", address: "Ryvej 21, 8752 Østbirk", manager: "Allan V.", popular: true },
+      { id: "6349", number: "Sag 6349", name: "Vesterlund Friplejehjem", type: "Entreprise", address: "Dørkenvej 34, 7323 Give", manager: "Troels Nortvig", popular: true },
+      { id: "6350", number: "Sag 6350", name: "Vesterlund Friplejehjem (ekstra)", type: "Entreprise", address: "Dørkenvej 34, 7323 Give", manager: "Troels Nortvig", popular: true },
+      { id: "6348", number: "Sag 6348", name: "Steel Production - Ny hal", type: "Entreprise", address: "Islandsvej 25, 8700 Horsens", manager: "Marcus Dalland Braae", popular: true },
+      { id: "6336", number: "Sag 6336", name: "SØP Horsens - ny politistation", type: "Entreprise", address: "Holmboes Allé 2, 8700 Horsens", manager: "Allan V.", popular: true },
+      { id: "6337", number: "Sag 6337", name: "SØP Horsens - ny politistation (ekstra)", type: "Entreprise", address: "Holmboes Allé 2, 8700 Horsens", manager: "Allan V.", popular: true },
+      { id: "6297", number: "Sag 6297", name: "Samlingspunktet - Gamle Rådhus", type: "Entreprise", address: "Søndergade 26, 8700 Horsens", manager: "Marcus Dalland Braae", popular: true },
+      { id: "6381", number: "Sag 6381", name: "Facaderenovering Østerhåbsskolen", type: "Entreprise", address: "Østerhåbvej 85, 8700 Horsens", manager: "Allan V.", popular: true },
+      { id: "6382", number: "Sag 6382", name: "Facaderenovering Østerhåbsskolen (ekstra)", type: "Entreprise", address: "Østerhåbvej 85, 8700 Horsens", manager: "Allan V.", popular: true },
+      { id: "6393", number: "Sag 6393", name: "Havnen Horsens - gipsvægge og døre", type: "Entreprise", address: "Nordhavnsvej 1, 8700 Horsens", manager: "Marcus Dalland Braae", popular: true },
+      { id: "6397", number: "Sag 6397", name: "Jem og fix Hobro - hegn", type: "Entreprise", address: "Søndergade 10, 9500 Hobro", manager: "Marcus Dalland Braae", popular: true },
+      { id: "3054", number: "Sag 3054", name: "Sikavej 30 - utæt tag/vandskade", type: "Service", address: "Sikavej 30, 7160 Tørring", manager: "Allan V.", popular: false },
+      { id: "3053", number: "Sag 3053", name: "Fængslet Horsens - rep loft", type: "Service", address: "Fussingsvej 8, 8700 Horsens", manager: "Marcus Dalland Braae", popular: false },
+      { id: "3052", number: "Sag 3052", name: "Roesgaard - oliering af bordplader", type: "Service", address: "Sønderbrogade 16, 8700 Horsens", manager: "Thomas Nortvig", popular: false }
     ];
 
     // MEDARBEJDERE & PROFILER (Krav 1)
