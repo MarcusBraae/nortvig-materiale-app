@@ -1684,12 +1684,39 @@
 
             <!-- Upload & Valg Formular -->
             <div class="p-5 bg-slate-900 rounded-2xl border border-slate-800 space-y-4">
+              <!-- Valg af aftaletype / omfang -->
+              <div>
+                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Aftaletype / Omfang <span class="text-emerald-400">*</span>
+                </label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <label id="pa-scope-label-global" class="flex items-center space-x-2.5 p-3 rounded-xl bg-slate-800/90 border-2 border-emerald-500 cursor-pointer transition">
+                    <input type="radio" name="pa-scope" id="pa-scope-global" value="global" checked onchange="handlePriceAgreementScopeChange()" class="accent-emerald-500 text-emerald-500">
+                    <div>
+                      <div class="text-xs font-bold text-white flex items-center space-x-1">
+                        <span>🌐 Overordnet Firmarammeaftale</span>
+                      </div>
+                      <div class="text-[11px] text-emerald-400 font-medium">Gælder ALLE sager (f.eks. Würth, Bygma, STARK)</div>
+                    </div>
+                  </label>
+                  <label id="pa-scope-label-case" class="flex items-center space-x-2.5 p-3 rounded-xl bg-slate-800/90 border border-slate-700 cursor-pointer transition">
+                    <input type="radio" name="pa-scope" id="pa-scope-case" value="case" onchange="handlePriceAgreementScopeChange()" class="accent-emerald-500 text-emerald-500">
+                    <div>
+                      <div class="text-xs font-bold text-white flex items-center space-x-1">
+                        <span>🎯 Specifik Sagsaftale</span>
+                      </div>
+                      <div class="text-[11px] text-slate-400 font-medium">Gælder kun udvalgt sag (projektpriser)</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
+                <div id="pa-case-select-wrapper">
                   <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
                     Vælg Byggesag <span class="text-emerald-400">*</span>
                   </label>
-                  <select id="pa-select-case" class="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white focus:border-[#52A633] focus:outline-none">
+                  <select id="pa-select-case" onchange="handlePriceAgreementCaseSelectChange()" class="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white focus:border-[#52A633] focus:outline-none">
                     <!-- Populated dynamically via renderPriceAgreementsTab() -->
                   </select>
                 </div>
@@ -1698,10 +1725,10 @@
                     Vælg Leverandør <span class="text-emerald-400">*</span>
                   </label>
                   <select id="pa-select-supplier" class="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white focus:border-[#52A633] focus:outline-none">
+                    <option value="Würth" selected>Würth</option>
                     <option value="Bygma">Bygma</option>
                     <option value="STARK">STARK</option>
                     <option value="XL-BYG">XL-Byg</option>
-                    <option value="Würth">Würth</option>
                   </select>
                 </div>
               </div>
@@ -1735,9 +1762,9 @@
                     <button type="button" onclick="cancelPendingPriceAgreement()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold active:scale-95 transition">
                       Annullér
                     </button>
-                    <button type="button" onclick="savePendingPriceAgreement()" class="px-4 py-1.5 bg-[#00864E] hover:bg-[#52A633] text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-md active:scale-95 transition">
+                    <button type="button" id="pa-save-btn" onclick="savePendingPriceAgreement()" class="px-4 py-1.5 bg-[#00864E] hover:bg-[#52A633] text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-md active:scale-95 transition">
                       <i data-lucide="save" class="w-3.5 h-3.5"></i>
-                      <span>Gem Prisaftale for sag</span>
+                      <span id="pa-save-btn-text">Gem Prisaftale for sag</span>
                     </button>
                   </div>
                 </div>
@@ -1766,7 +1793,7 @@
               <div class="flex items-center justify-between">
                 <h4 class="text-xs uppercase tracking-wider font-bold text-slate-400 flex items-center space-x-2">
                   <i data-lucide="database" class="w-3.5 h-3.5 text-emerald-400"></i>
-                  <span>Aktive Prisaftaler pr. Byggesag (<span id="pa-total-agreements-count">0</span>)</span>
+                  <span>Aktive Prisaftaler (<span id="pa-total-agreements-count">0</span>)</span>
                 </h4>
                 <button type="button" onclick="clearAllPriceAgreements()" class="text-[11px] text-slate-500 hover:text-red-400 transition">
                   Nulstil alle aftaler
@@ -4211,6 +4238,7 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
     // PRISAFTALER & PRISLISTER (Admin, LocalStorage, SheetJS & Live Validering)
     // ==========================================================================
     const PRICE_AGREEMENTS_STORAGE_KEY = 'nortvig_case_price_agreements_v1';
+    const GLOBAL_PRICE_AGREEMENT_KEY_PREFIX = '__GLOBAL__';
     let pendingPriceAgreementData = null;
 
     function getStoredPriceAgreements() {
@@ -4233,10 +4261,51 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
       updateActiveCaseAgreementBadge();
     }
 
-    function getPriceAgreementForCase(caseId) {
-      if (!caseId) return null;
+    // Hierarkisk opslag: 1. Specifik sagsaftale -> 2. Overordnet firmarammeaftale -> 3. null (erfaringspriser)
+    function getPriceAgreement(caseId, supplier) {
       const all = getStoredPriceAgreements();
-      return all[caseId] || null;
+
+      // 1. Tjek specifik sagsaftale for den aktuelle sag
+      if (caseId && all[caseId]) {
+        const caseAgr = all[caseId];
+        if (!supplier || !caseAgr.supplier || caseAgr.supplier.toLowerCase() === supplier.toLowerCase()) {
+          return { ...caseAgr, agreementType: 'case' };
+        }
+      }
+
+      // 2. Fallback til overordnet firmarammeaftale for leverandøren
+      if (supplier) {
+        const globalKey = GLOBAL_PRICE_AGREEMENT_KEY_PREFIX + supplier.toUpperCase();
+        if (all[globalKey]) {
+          return { ...all[globalKey], agreementType: 'global' };
+        }
+      }
+
+      // Hvis leverandør ikke er angivet, tjek om der findes en global aftale
+      for (const k of Object.keys(all)) {
+        if (k.startsWith(GLOBAL_PRICE_AGREEMENT_KEY_PREFIX)) {
+          if (!supplier || (all[k].supplier && all[k].supplier.toLowerCase() === supplier.toLowerCase())) {
+            return { ...all[k], agreementType: 'global' };
+          }
+        }
+      }
+
+      return null;
+    }
+
+    function getPriceAgreementForCase(caseId, supplier) {
+      return getPriceAgreement(caseId, supplier);
+    }
+
+    function checkPriceAgreement(caseId, supplier) {
+      return getPriceAgreement(caseId, supplier);
+    }
+
+    function getGlobalPriceAgreement(supplier) {
+      if (!supplier) return null;
+      const all = getStoredPriceAgreements();
+      const globalKey = GLOBAL_PRICE_AGREEMENT_KEY_PREFIX + supplier.toUpperCase();
+      return all[globalKey] || null;
     }
 
     function updatePriceAgreementsBadge() {
@@ -4248,10 +4317,56 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
       if (totalCountEl) totalCountEl.textContent = count;
     }
 
+    function handlePriceAgreementScopeChange() {
+      const isGlobal = document.getElementById('pa-scope-global')?.checked;
+      const caseSelect = document.getElementById('pa-select-case');
+      const labelGlobal = document.getElementById('pa-scope-label-global');
+      const labelCase = document.getElementById('pa-scope-label-case');
+      const saveBtnText = document.getElementById('pa-save-btn-text');
+
+      if (labelGlobal && labelCase) {
+        if (isGlobal) {
+          labelGlobal.className = 'flex items-center space-x-2.5 p-3 rounded-xl bg-slate-800/90 border-2 border-emerald-500 cursor-pointer transition';
+          labelCase.className = 'flex items-center space-x-2.5 p-3 rounded-xl bg-slate-800/90 border border-slate-700 cursor-pointer transition';
+        } else {
+          labelCase.className = 'flex items-center space-x-2.5 p-3 rounded-xl bg-slate-800/90 border-2 border-emerald-500 cursor-pointer transition';
+          labelGlobal.className = 'flex items-center space-x-2.5 p-3 rounded-xl bg-slate-800/90 border border-slate-700 cursor-pointer transition';
+        }
+      }
+
+      if (caseSelect) {
+        if (isGlobal) {
+          caseSelect.value = 'ALL';
+        } else if (caseSelect.value === 'ALL') {
+          const cases = getStoredCases();
+          if (cases.length > 0) caseSelect.value = cases[0].id;
+        }
+      }
+
+      if (saveBtnText) {
+        saveBtnText.textContent = isGlobal ? 'Gem Overordnet Firmarammeaftale' : 'Gem Prisaftale for sag';
+      }
+    }
+
+    function handlePriceAgreementCaseSelectChange() {
+      const caseSelect = document.getElementById('pa-select-case');
+      const radioGlobal = document.getElementById('pa-scope-global');
+      const radioCase = document.getElementById('pa-scope-case');
+      if (!caseSelect) return;
+
+      if (caseSelect.value === 'ALL') {
+        if (radioGlobal) radioGlobal.checked = true;
+      } else {
+        if (radioCase) radioCase.checked = true;
+      }
+      handlePriceAgreementScopeChange();
+    }
+
     function renderPriceAgreementsTab() {
       populatePriceAgreementCases();
       renderPriceAgreementsList();
       updatePriceAgreementsBadge();
+      handlePriceAgreementScopeChange();
       lucide.createIcons();
     }
 
@@ -4261,16 +4376,24 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
       const cases = getStoredCases();
       const currentSelected = select.value;
       
-      select.innerHTML = cases.map(c => {
-        const hasAftale = !!getPriceAgreementForCase(c.id);
+      let html = '<option value="ALL" class="font-bold text-emerald-400">🌐 Overordnet Firmarammeaftale (Alle sager)</option>';
+      html += cases.map(c => {
+        const hasAftale = !!getPriceAgreement(c.id);
         const star = hasAftale ? '★ ' : '';
         return '<option value="' + c.id + '">' + star + c.number + ' - ' + c.name + '</option>';
       }).join('');
 
+      select.innerHTML = html;
+
       if (currentSelected) {
         select.value = currentSelected;
-      } else if (currentFlow.case) {
-        select.value = currentFlow.case.id;
+      } else {
+        const isGlobal = document.getElementById('pa-scope-global')?.checked;
+        if (isGlobal) {
+          select.value = 'ALL';
+        } else if (currentFlow.case) {
+          select.value = currentFlow.case.id;
+        }
       }
     }
 
@@ -4455,34 +4578,63 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
 
       const caseSelect = document.getElementById('pa-select-case');
       const supplierSelect = document.getElementById('pa-select-supplier');
+      const isGlobalRadio = document.getElementById('pa-scope-global')?.checked;
 
-      const caseId = caseSelect.value;
-      const supplier = supplierSelect.value;
-
-      const cases = getStoredCases();
-      const caseObj = cases.find(c => c.id === caseId) || { id: caseId, number: ('Sag ' + caseId), name: 'Byggesag' };
+      const supplier = supplierSelect ? supplierSelect.value : 'Würth';
+      const rawCaseId = caseSelect ? caseSelect.value : 'ALL';
+      const isGlobal = isGlobalRadio || rawCaseId === 'ALL';
 
       const all = getStoredPriceAgreements();
-      all[caseId] = {
-        caseId: caseId,
-        caseNumber: caseObj.number,
-        caseName: caseObj.name,
-        supplier: supplier,
-        fileName: pendingPriceAgreementData.fileName,
-        fileSize: pendingPriceAgreementData.fileSize,
-        uploadedAt: new Date().toLocaleDateString('da-DK', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-        itemCount: pendingPriceAgreementData.items.length,
-        items: pendingPriceAgreementData.items
-      };
 
-      saveStoredPriceAgreements(all);
-      pendingPriceAgreementData = null;
-      const preview = document.getElementById('pa-parsed-preview-container');
-      if (preview) preview.classList.add('hidden');
+      if (isGlobal) {
+        const globalKey = GLOBAL_PRICE_AGREEMENT_KEY_PREFIX + supplier.toUpperCase();
+        all[globalKey] = {
+          isGlobal: true,
+          supplier: supplier,
+          caseId: 'ALL',
+          caseNumber: 'Overordnet Rammeaftale',
+          caseName: 'Gælder ALLE sager i Nortvig',
+          fileName: pendingPriceAgreementData.fileName,
+          fileSize: pendingPriceAgreementData.fileSize,
+          uploadedAt: new Date().toLocaleDateString('da-DK', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+          itemCount: pendingPriceAgreementData.items.length,
+          items: pendingPriceAgreementData.items
+        };
+        saveStoredPriceAgreements(all);
+        pendingPriceAgreementData = null;
+        const preview = document.getElementById('pa-parsed-preview-container');
+        if (preview) preview.classList.add('hidden');
 
-      renderPriceAgreementsList();
-      populatePriceAgreementCases();
-      showToast('Prisaftale Gemt!', all[caseId].itemCount + ' priser tilknyttet ' + caseObj.number + ' (' + supplier + ').');
+        renderPriceAgreementsList();
+        populatePriceAgreementCases();
+        showToast('Firmarammeaftale Gemt!', `${all[globalKey].itemCount} priser gemt for ${supplier} som overordnet aftale for alle sager.`);
+      } else {
+        const caseId = rawCaseId;
+        const cases = getStoredCases();
+        const caseObj = cases.find(c => c.id === caseId) || { id: caseId, number: ('Sag ' + caseId), name: 'Byggesag' };
+
+        all[caseId] = {
+          isGlobal: false,
+          caseId: caseId,
+          caseNumber: caseObj.number,
+          caseName: caseObj.name,
+          supplier: supplier,
+          fileName: pendingPriceAgreementData.fileName,
+          fileSize: pendingPriceAgreementData.fileSize,
+          uploadedAt: new Date().toLocaleDateString('da-DK', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+          itemCount: pendingPriceAgreementData.items.length,
+          items: pendingPriceAgreementData.items
+        };
+
+        saveStoredPriceAgreements(all);
+        pendingPriceAgreementData = null;
+        const preview = document.getElementById('pa-parsed-preview-container');
+        if (preview) preview.classList.add('hidden');
+
+        renderPriceAgreementsList();
+        populatePriceAgreementCases();
+        showToast('Prisaftale Gemt!', all[caseId].itemCount + ' priser tilknyttet ' + caseObj.number + ' (' + supplier + ').');
+      }
     }
 
     function renderPriceAgreementsList() {
@@ -4496,7 +4648,7 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
           <div class="col-span-1 md:col-span-2 p-8 text-center text-slate-500 bg-slate-900/60 rounded-2xl border border-slate-800">
             <i data-lucide="file-text" class="w-8 h-8 text-slate-600 mx-auto mb-2"></i>
             <div class="text-sm font-bold text-slate-400">Ingen tilknyttede prisaftaler endnu</div>
-            <p class="text-xs text-slate-500 mt-1">Vælg en sag og leverandør ovenfor, og upload en Excel-fil for at aktivere faste aftalepriser.</p>
+            <p class="text-xs text-slate-500 mt-1">Vælg overordnet firmarammeaftale eller en specifik sag ovenfor, og upload en Excel-fil for at aktivere faste aftalepriser.</p>
           </div>
         `;
         lucide.createIcons();
@@ -4506,15 +4658,23 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
       container.innerHTML = keys.map(k => {
         const a = all[k];
         const previewItems = (a.items || []).slice(0, 3);
+        const isGlobal = a.isGlobal || k.startsWith(GLOBAL_PRICE_AGREEMENT_KEY_PREFIX);
         return `
-          <div class="p-4 rounded-2xl bg-slate-900 border border-emerald-500/30 shadow-lg space-y-3">
+          <div class="p-4 rounded-2xl bg-slate-900 border ${isGlobal ? 'border-amber-500/40' : 'border-emerald-500/30'} shadow-lg space-y-3">
             <div class="flex items-start justify-between gap-2 pb-2 border-b border-slate-800">
               <div>
                 <div class="flex items-center space-x-2">
-                  <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-black text-[10px] border border-emerald-500/30 flex items-center space-x-1">
-                    <i data-lucide="check-circle-2" class="w-3 h-3"></i>
-                    <span>Fast Sagskundeaftale</span>
-                  </span>
+                  ${isGlobal ? `
+                    <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-black text-[10px] border border-amber-500/40 flex items-center space-x-1">
+                      <i data-lucide="globe" class="w-3 h-3 text-amber-400"></i>
+                      <span>🌐 Overordnet Firmarammeaftale (Alle sager)</span>
+                    </span>
+                  ` : `
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-black text-[10px] border border-emerald-500/30 flex items-center space-x-1">
+                      <i data-lucide="check-circle-2" class="w-3 h-3"></i>
+                      <span>Fast Sagskundeaftale</span>
+                    </span>
+                  `}
                   <span class="text-xs font-bold text-white">${a.supplier}</span>
                 </div>
                 <h5 class="text-sm font-black text-white mt-1.5">${a.caseNumber} - ${a.caseName}</h5>
@@ -4540,7 +4700,7 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
               ${previewItems.map(it => `
                 <div class="flex items-center justify-between text-slate-300">
                   <span class="truncate max-w-[200px] text-slate-400">• ${escapeHtml(it.desc || it.itemNo)}</span>
-                  <span class="font-bold text-emerald-400 shrink-0">${it.price.toFixed(2)} DKK /${it.unit}</span>
+                  <span class="font-bold ${isGlobal ? 'text-amber-400' : 'text-emerald-400'} shrink-0">${it.price.toFixed(2)} DKK /${it.unit}</span>
                 </div>
               `).join('')}
               ${(a.items || []).length > 3 ? `<div class="text-[10px] text-slate-500 italic pt-0.5">+ ${a.items.length - 3} yderligere aftaleposter gemt...</div>` : ''}
@@ -4548,7 +4708,10 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
 
             <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1">
               <span>Indlæst: ${a.uploadedAt}</span>
-              <span class="text-[#52A633] font-bold flex items-center"><i data-lucide="shield-check" class="w-3 h-3 mr-1"></i>Aktiv til 3-vejs match</span>
+              <span class="${isGlobal ? 'text-amber-400' : 'text-[#52A633]'} font-bold flex items-center">
+                <i data-lucide="${isGlobal ? 'globe' : 'shield-check'}" class="w-3 h-3 mr-1"></i>
+                ${isGlobal ? 'Aktiv på tværs af alle sager' : 'Aktiv til 3-vejs match'}
+              </span>
             </div>
           </div>
         `;
@@ -4556,16 +4719,17 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
       lucide.createIcons();
     }
 
-    function deletePriceAgreement(caseId) {
+    function deletePriceAgreement(key) {
       const all = getStoredPriceAgreements();
-      if (!all[caseId]) return;
-      const name = all[caseId].caseNumber;
-      if (confirm('Vil du slette den faste prisaftale for ' + name + '?')) {
-        delete all[caseId];
+      if (!all[key]) return;
+      const isGlobal = all[key].isGlobal || key.startsWith(GLOBAL_PRICE_AGREEMENT_KEY_PREFIX);
+      const name = isGlobal ? `Overordnet rammeaftale for ${all[key].supplier}` : all[key].caseNumber;
+      if (confirm('Vil du slette ' + (isGlobal ? 'den overordnede rammeaftale for ' + all[key].supplier : 'den faste sagsaftale for ' + name) + '?')) {
+        delete all[key];
         saveStoredPriceAgreements(all);
         renderPriceAgreementsList();
         populatePriceAgreementCases();
-        showToast('Prisaftale slettet', 'Aftalen for ' + name + ' er fjernet.');
+        showToast('Prisaftale slettet', name + ' er fjernet.');
       }
     }
 
@@ -4578,29 +4742,31 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
       }
     }
 
-    function downloadPriceAgreement(caseId) {
+    function downloadPriceAgreement(key) {
       const all = getStoredPriceAgreements();
-      const a = all[caseId];
+      const a = all[key];
       if (!a || !a.items || a.items.length === 0) {
         showToast('Ingen data', 'Kunne ikke finde prisaftalen.');
         return;
       }
 
+      const isGlobal = a.isGlobal || key.startsWith(GLOBAL_PRICE_AGREEMENT_KEY_PREFIX);
       try {
         const exportData = a.items.map(it => ({
           'Varenummer': it.itemNo,
           'Beskrivelse': it.desc,
           'Aftalt Nettopris (DKK)': it.price,
           'Enhed': it.unit,
-          'Sag': a.caseNumber,
+          'Sag': isGlobal ? 'ALLE SAGER (Firmarammeaftale)' : a.caseNumber,
           'Leverandør': a.supplier
         }));
 
         const ws = XLSX.utils.json_to_sheet(exportData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Prisaftale');
-        XLSX.writeFile(wb, 'Prisaftale_' + a.caseNumber.replace(/[^a-zA-Z0-9]/g, '_') + '_' + a.supplier + '.xlsx');
-        showToast('Prisaftale downloadet', 'Excel-fil genereret for ' + a.caseNumber + '.');
+        const filenamePrefix = isGlobal ? ('Rammeaftale_Nortvig_' + a.supplier) : ('Prisaftale_' + a.caseNumber.replace(/[^a-zA-Z0-9]/g, '_') + '_' + a.supplier);
+        XLSX.writeFile(wb, filenamePrefix + '.xlsx');
+        showToast('Prisaftale downloadet', 'Excel-fil genereret for ' + (isGlobal ? a.supplier + ' (Rammeaftale)' : a.caseNumber) + '.');
       } catch (err) {
         console.error('Fejl ved download af prisaftale:', err);
         showToast('Fejl', 'Kunne ikke oprette Excel-fil: ' + err.message);
@@ -4608,8 +4774,11 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
     }
 
     function loadDemoPriceAgreement() {
+      const isGlobalRadio = document.getElementById('pa-scope-global')?.checked;
       const demoItems = [
         { itemNo: 'WURTH-84920', desc: 'Würth 4,5x60 Terrasseskruer A4 Syrefast', price: 135.00, unit: 'pk' },
+        { itemNo: 'WURTH-91204', desc: 'Würth 5,0x80 TX25 Delsnit Træskrue', price: 148.00, unit: 'pk' },
+        { itemNo: 'WURTH-89020', desc: 'Würth Fugeskum 1-K Pistolskum 750ml', price: 62.00, unit: 'ds' },
         { itemNo: 'TR-45095', desc: '45x95 C24 Reglar / Konstruktionstræ', price: 16.50, unit: 'm' },
         { itemNo: 'GIPS-1300', desc: '13mm Fermacell Fibergipsplade 90x250', price: 92.00, unit: 'plade' },
         { itemNo: 'PE-2050', desc: '0,20mm PE Dampspærrefolie 2x50m', price: 360.00, unit: 'rulle' },
@@ -4619,39 +4788,57 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
       ];
 
       pendingPriceAgreementData = {
-        fileName: 'Rammeaftale_2026_Nortvig_Hybel.xlsx',
-        fileSize: '18.4 KB',
+        fileName: isGlobalRadio ? 'Wuerth_Hovedrammeaftale_2026_AlleSager.xlsx' : 'Rammeaftale_2026_Nortvig_Hybel.xlsx',
+        fileSize: '24.2 KB',
         parsedAt: new Date().toISOString(),
         items: demoItems
       };
 
-      const caseSelect = document.getElementById('pa-select-case');
-      if (caseSelect) {
-        const found = Array.from(caseSelect.options).find(o => o.value === '6380');
-        if (found) caseSelect.value = '6380';
+      const supplierSelect = document.getElementById('pa-select-supplier');
+      if (supplierSelect) supplierSelect.value = 'Würth';
+
+      if (!isGlobalRadio) {
+        const caseSelect = document.getElementById('pa-select-case');
+        if (caseSelect) {
+          const found = Array.from(caseSelect.options).find(o => o.value === '6380');
+          if (found) caseSelect.value = '6380';
+        }
       }
 
       showPriceAgreementPreview(pendingPriceAgreementData);
-      showToast('Demo prisaftale klargjort', 'Klik på "Gem Prisaftale for sag" for at aktivere den for den valgte sag.');
+      showToast('Demo prisaftale klargjort', isGlobalRadio ? 'Klik på "Gem Overordnet Firmarammeaftale" for at aktivere for Würth.' : 'Klik på "Gem Prisaftale for sag" for at aktivere den.');
     }
 
     function updateActiveCaseAgreementBadge() {
       const currentCase = currentFlow.case;
       const caseId = currentCase ? currentCase.id : null;
-      const agreement = getPriceAgreementForCase(caseId);
+      const supplierName = currentFlow.supplier ? currentFlow.supplier.name : null;
+      const agreement = getPriceAgreement(caseId, supplierName);
+      const isGlobal = agreement && (agreement.isGlobal || agreement.agreementType === 'global');
 
       // 1. Badge på Trin 2 (screen-supplier)
       const supplierBadge = document.getElementById('supplier-case-agreement-badge');
       if (supplierBadge) {
         if (agreement) {
-          supplierBadge.className = 'mt-2 p-2.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center justify-between';
-          supplierBadge.innerHTML = `
-            <div class="flex items-center space-x-2 truncate">
-              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span class="truncate">★ Fast Sagskundeaftale aktiv (${agreement.itemCount} priser indlæst fra ${agreement.supplier})</span>
-            </div>
-            <button type="button" onclick="goToAdminTab('priceagreements')" class="ml-2 text-[10px] text-emerald-400 underline hover:text-white shrink-0">Administrér</button>
-          `;
+          if (isGlobal) {
+            supplierBadge.className = 'mt-2 p-2.5 rounded-xl bg-amber-950/60 border border-amber-500/50 text-amber-200 text-xs font-bold flex items-center justify-between shadow';
+            supplierBadge.innerHTML = `
+              <div class="flex items-center space-x-2 truncate">
+                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                <span class="truncate">★ Overordnet Firmarammeaftale aktiv (${agreement.itemCount} priser indlæst fra ${agreement.supplier} - gælder alle sager)</span>
+              </div>
+              <button type="button" onclick="goToAdminTab('priceagreements')" class="ml-2 text-[10px] text-amber-300 underline hover:text-white shrink-0">Administrér</button>
+            `;
+          } else {
+            supplierBadge.className = 'mt-2 p-2.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center justify-between';
+            supplierBadge.innerHTML = `
+              <div class="flex items-center space-x-2 truncate">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="truncate">★ Fast Sagskundeaftale aktiv (${agreement.itemCount} priser indlæst fra ${agreement.supplier})</span>
+              </div>
+              <button type="button" onclick="goToAdminTab('priceagreements')" class="ml-2 text-[10px] text-emerald-400 underline hover:text-white shrink-0">Administrér</button>
+            `;
+          }
         } else {
           supplierBadge.className = 'mt-2 p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-300 text-xs flex items-center justify-between';
           supplierBadge.innerHTML = `
@@ -4668,23 +4855,44 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
       const orderBadge = document.getElementById('order-case-agreement-badge');
       if (orderBadge) {
         if (agreement) {
-          orderBadge.className = 'mb-3 p-3 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center justify-between shadow-lg';
-          orderBadge.innerHTML = `
-            <div class="flex items-center space-x-2.5 truncate">
-              <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
-                <i data-lucide="shield-check" class="w-4 h-4"></i>
-              </div>
-              <div class="truncate">
-                <div class="text-white font-extrabold flex items-center space-x-1.5 truncate">
-                  <span class="text-emerald-400">★ Fast Sagskundeaftale aktiv (${agreement.itemCount} priser indlæst)</span>
+          if (isGlobal) {
+            orderBadge.className = 'mb-3 p-3 rounded-2xl bg-amber-950/70 border-2 border-amber-500/50 text-amber-200 text-xs font-bold flex items-center justify-between shadow-xl';
+            orderBadge.innerHTML = `
+              <div class="flex items-center space-x-2.5 truncate">
+                <div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/40">
+                  <i data-lucide="globe" class="w-4 h-4"></i>
                 </div>
-                <div class="text-[11px] text-slate-400 truncate">Gælder for ${currentCase.number} hos ${agreement.supplier} (${agreement.fileName})</div>
+                <div class="truncate">
+                  <div class="text-white font-extrabold flex items-center space-x-1.5 truncate">
+                    <span class="text-amber-400">★ Overordnet Rammeaftale aktiv (${agreement.itemCount} priser indlæst)</span>
+                    <span class="px-1.5 py-0.2 bg-amber-500/30 text-amber-300 text-[9px] rounded font-mono uppercase">Alle sager</span>
+                  </div>
+                  <div class="text-[11px] text-slate-300 truncate">Overordnet firmarammeaftale hos ${agreement.supplier} (${agreement.fileName})</div>
+                </div>
               </div>
-            </div>
-            <button type="button" onclick="goToAdminTab('priceagreements')" class="ml-2 px-2.5 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-lg text-[10px] font-bold shrink-0 border border-emerald-500/30">
-              Se Aftale
-            </button>
-          `;
+              <button type="button" onclick="goToAdminTab('priceagreements')" class="ml-2 px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-lg text-[10px] font-bold shrink-0 border border-amber-500/40">
+                Se Aftale
+              </button>
+            `;
+          } else {
+            orderBadge.className = 'mb-3 p-3 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center justify-between shadow-lg';
+            orderBadge.innerHTML = `
+              <div class="flex items-center space-x-2.5 truncate">
+                <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+                  <i data-lucide="shield-check" class="w-4 h-4"></i>
+                </div>
+                <div class="truncate">
+                  <div class="text-white font-extrabold flex items-center space-x-1.5 truncate">
+                    <span class="text-emerald-400">★ Fast Sagskundeaftale aktiv (${agreement.itemCount} priser indlæst)</span>
+                  </div>
+                  <div class="text-[11px] text-slate-400 truncate">Gælder for ${currentCase ? currentCase.number : 'valgt sag'} hos ${agreement.supplier} (${agreement.fileName})</div>
+                </div>
+              </div>
+              <button type="button" onclick="goToAdminTab('priceagreements')" class="ml-2 px-2.5 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-lg text-[10px] font-bold shrink-0 border border-emerald-500/30">
+                Se Aftale
+              </button>
+            `;
+          }
         } else {
           orderBadge.className = 'mb-3 p-3 rounded-2xl bg-slate-900/90 border border-slate-700/80 text-slate-300 text-xs flex items-center justify-between';
           orderBadge.innerHTML = `
@@ -4709,7 +4917,13 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
       if (sagPill) {
         if (agreement) {
           sagPill.classList.remove('hidden');
-          sagPill.textContent = '★ Fast Aftale';
+          if (isGlobal) {
+            sagPill.textContent = '★ Rammeaftale (' + agreement.supplier + ')';
+            sagPill.className = 'px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[9px] font-black border border-amber-500/40';
+          } else {
+            sagPill.textContent = '★ Fast Sagskundeaftale';
+            sagPill.className = 'px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 text-[9px] font-black border border-emerald-500/40';
+          }
         } else {
           sagPill.classList.add('hidden');
         }
@@ -6458,13 +6672,15 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
         return;
       }
 
-      // 1. Tjek først om der er en fast tilknyttet prisaftale for den valgte sag
+      // 1. Hierarkisk aftaletjek: Først specifik sagsaftale, derefter overordnet firmarammeaftale
       const currentCase = currentFlow.case;
       const caseId = currentCase ? currentCase.id : null;
-      const caseAgreement = getPriceAgreementForCase(caseId);
+      const supplierName = currentFlow.supplier ? currentFlow.supplier.name : null;
+      const activeAgreement = getPriceAgreement(caseId, supplierName);
 
-      if (caseAgreement && caseAgreement.items && caseAgreement.items.length > 0) {
-        const matchingAftaleItems = caseAgreement.items.filter(item => {
+      if (activeAgreement && activeAgreement.items && activeAgreement.items.length > 0) {
+        const isGlobal = activeAgreement.isGlobal || activeAgreement.agreementType === 'global';
+        const matchingAftaleItems = activeAgreement.items.filter(item => {
           const desc = (item.desc || '').toLowerCase();
           const itemNo = (item.itemNo || '').toLowerCase();
           return desc.includes(val) || itemNo.includes(val) || val.split(' ').some(w => w.length > 2 && desc.includes(w));
@@ -6472,21 +6688,21 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
 
         if (matchingAftaleItems.length > 0) {
           container.innerHTML = matchingAftaleItems.slice(0, 2).map(item => `
-            <div class="p-3 bg-emerald-950/70 border border-emerald-500/50 rounded-2xl flex items-center justify-between text-xs animate-in fade-in duration-200">
+            <div class="p-3 ${isGlobal ? 'bg-amber-950/70 border border-amber-500/50' : 'bg-emerald-950/70 border border-emerald-500/50'} rounded-2xl flex items-center justify-between text-xs animate-in fade-in duration-200">
               <div class="flex items-center space-x-2.5 overflow-hidden">
-                <div class="w-7 h-7 rounded-lg bg-emerald-500/30 text-emerald-300 flex items-center justify-center shrink-0">
-                  <i data-lucide="check-check" class="w-4 h-4"></i>
+                <div class="w-7 h-7 rounded-lg ${isGlobal ? 'bg-amber-500/30 text-amber-300' : 'bg-emerald-500/30 text-emerald-300'} flex items-center justify-center shrink-0">
+                  <i data-lucide="${isGlobal ? 'globe' : 'check-check'}" class="w-4 h-4"></i>
                 </div>
                 <div class="truncate">
                   <div class="text-white font-bold flex items-center space-x-1.5 truncate">
-                    <span class="truncate">★ Aftalt Sagskundepris: ${item.price.toFixed(2)} DKK / ${escapeHtml(item.unit)}</span>
-                    <span class="px-1.5 py-0.2 bg-emerald-500/30 text-emerald-200 font-black text-[9px] rounded shrink-0">Fast Aftale</span>
+                    <span class="truncate">${isGlobal ? '★ Fast Rammeaftalepris:' : '★ Aftalt Sagskundepris:'} ${item.price.toFixed(2)} DKK / ${escapeHtml(item.unit)}</span>
+                    <span class="px-1.5 py-0.2 ${isGlobal ? 'bg-amber-500/30 text-amber-200' : 'bg-emerald-500/30 text-emerald-200'} font-black text-[9px] rounded shrink-0">${isGlobal ? 'Overordnet Rammeaftale' : 'Fast Aftale'}</span>
                   </div>
-                  <span class="text-emerald-300/80 text-[11px] block truncate">${escapeHtml(item.desc)} (${escapeHtml(item.itemNo)}) • ${caseAgreement.supplier}</span>
+                  <span class="${isGlobal ? 'text-amber-200/80' : 'text-emerald-300/80'} text-[11px] block truncate">${escapeHtml(item.desc)} (${escapeHtml(item.itemNo)}) • ${activeAgreement.supplier}</span>
                 </div>
               </div>
               <button type="button" onclick="appendMaterialTag('${escapeHtml(item.desc)}')" 
-                class="ml-2 px-2.5 py-1 bg-[#00864E] hover:bg-[#52A633] text-white rounded-lg font-bold text-[10px] shrink-0 active:scale-95 transition">
+                class="ml-2 px-2.5 py-1 ${isGlobal ? 'bg-amber-600 hover:bg-amber-500' : 'bg-[#00864E] hover:bg-[#52A633]'} text-white rounded-lg font-bold text-[10px] shrink-0 active:scale-95 transition">
                 Brug
               </button>
             </div>
@@ -6496,7 +6712,7 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
         }
       }
 
-      // 2. Fallback til generelle erfaringspriser hvis ingen sagsspecifik aftalelinje matcher
+      // 2. Fallback til generelle erfaringspriser hvis ingen sags- eller rammeaftalelinje matcher
       let matched = [];
       for (const [key, item] of Object.entries(erfaPriceCatalog)) {
         if (item.keywords.some(kw => val.includes(kw))) {
@@ -7067,9 +7283,13 @@ Fuglevangsvej 47, 8700 Horsens`;
       const invoiceBox = document.getElementById('sim-invoice-box');
       const auditResult = document.getElementById('sim-audit-result');
       const currentCase = currentFlow.case;
-      const agreement = getPriceAgreementForCase(currentCase ? currentCase.id : null);
+      const supplierName = currentFlow.supplier ? currentFlow.supplier.name : null;
+      const agreement = getPriceAgreement(currentCase ? currentCase.id : null, supplierName);
       const sagName = currentCase ? `${currentCase.number} - ${currentCase.name}` : 'Sag 2401';
-      const aftaleBadge = agreement ? ` (Verificeret mod ${agreement.itemCount} indlæste aftalepriser fra ${agreement.supplier})` : ' (Verificeret mod fast aftalepris)';
+      const isGlobal = agreement && (agreement.isGlobal || agreement.agreementType === 'global');
+      const aftaleBadge = agreement 
+        ? ` (Verificeret mod ${agreement.itemCount} indlæste priser fra ${agreement.supplier}${isGlobal ? ' - overordnet rammeaftale' : ' - sagsaftale'})` 
+        : ' (Verificeret mod fast aftalepris)';
 
       if (simulationScenario === 'error') {
         invoiceBox.className = 'bg-slate-900 p-2.5 rounded-lg font-mono text-[11px] leading-relaxed border border-red-500/50 text-red-200';
