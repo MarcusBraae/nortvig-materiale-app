@@ -390,6 +390,14 @@
           <!-- Cases rendered dynamically via JavaScript -->
         </div>
 
+        <!-- Toggle expand all cases button -->
+        <div id="cases-toggle-container" class="pt-2 text-center">
+          <button id="cases-toggle-btn" type="button" onclick="toggleShowAllCases()" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-5 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700/80 text-slate-200 border border-slate-700 hover:border-[#52A633]/60 font-bold text-xs shadow-md transition active:scale-[0.98]">
+            <i id="cases-toggle-icon" data-lucide="chevron-down" class="w-4 h-4 text-[#52A633]"></i>
+            <span id="cases-toggle-text">Vis alle 95 sager</span>
+          </button>
+        </div>
+
         <!-- Custom Case Fallback -->
         <div class="mt-4 p-4 rounded-2xl bg-slate-800/40 border border-dashed border-slate-700 text-center">
           <p class="text-xs text-slate-400">Mangler din sag på listen?</p>
@@ -2775,6 +2783,7 @@
     };
 
     let activeFilter = 'alle';
+    let showAllCases = false;
     let simulationScenario = 'error';
     let isRecordingSpeech = false;
     let speechRecognitionInstance = null;
@@ -2841,7 +2850,8 @@
       const clearBtn = document.getElementById('case-search-clear');
       if (clearBtn) clearBtn.classList.add('hidden');
 
-      renderCasesList(DEFAULT_CASES);
+      showAllCases = false;
+      filterCases();
       showToast('Sager nulstillet', 'Alle 95 reelle sager fra E-komplet er genindlæst.');
     }
 
@@ -3418,8 +3428,7 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
     // ==========================================
     document.addEventListener('DOMContentLoaded', () => {
       initTheme();
-      const allCases = getStoredCases();
-      renderCasesList(allCases);
+      filterCases();
       renderSupplierSelectionCards();
       renderUserDropdown();
       updateActiveUserUI();
@@ -3629,19 +3638,50 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
     // ==========================================
     // STEP 1: CASE SELECTION LOGIC
     // ==========================================
-    function renderCasesList(cases) {
+    function toggleShowAllCases() {
+      showAllCases = !showAllCases;
+      filterCases();
+    }
+
+    function renderCasesList(cases, totalMatchesCount) {
       const container = document.getElementById('cases-list');
+      const toggleContainer = document.getElementById('cases-toggle-container');
+      const toggleBtn = document.getElementById('cases-toggle-btn');
+      const toggleText = document.getElementById('cases-toggle-text');
+      const toggleIcon = document.getElementById('cases-toggle-icon');
+      const searchInput = document.getElementById('case-search-input');
+      const query = (searchInput ? searchInput.value : '').trim();
+
       container.innerHTML = '';
 
       if (cases.length === 0) {
+        if (toggleContainer) toggleContainer.classList.add('hidden');
         container.innerHTML = `
-          <div class="text-center py-8 text-slate-400">
+          <div class="col-span-1 md:col-span-2 text-center py-8 text-slate-400">
             <i data-lucide="folder-x" class="w-8 h-8 mx-auto mb-2 text-slate-600"></i>
             <p class="text-sm font-semibold">Ingen sager matcher søgningen</p>
-            <p class="text-xs text-slate-500 mt-1">Prøv et andet sagsnr. eller opret manuelt</p>
+            <p class="text-xs text-slate-500 mt-1">Prøv et andet sagsnr., bynavn eller opret manuelt</p>
           </div>`;
         lucide.createIcons();
         return;
+      }
+
+      // Update toggle button visibility & label
+      // Hvis brugeren har søgt noget frem, viser vi alle matchende resultater direkte og skjuler toggle
+      const totalCount = typeof totalMatchesCount === 'number' ? totalMatchesCount : cases.length;
+      if (toggleContainer) {
+        if (query.length > 0 || totalCount <= 10) {
+          toggleContainer.classList.add('hidden');
+        } else {
+          toggleContainer.classList.remove('hidden');
+          if (showAllCases) {
+            if (toggleText) toggleText.textContent = `Vis færre sager (vis kun top 10)`;
+            if (toggleIcon) toggleIcon.setAttribute('data-lucide', 'chevron-up');
+          } else {
+            if (toggleText) toggleText.textContent = `Vis alle ${totalCount} sager`;
+            if (toggleIcon) toggleIcon.setAttribute('data-lucide', 'chevron-down');
+          }
+        }
       }
 
       cases.forEach(c => {
@@ -3742,7 +3782,17 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
         return matchesQuery && matchesFilter;
       });
 
-      renderCasesList(filtered);
+      // UI/UX logik:
+      // 1. Hvis brugeren søger aktivt, vis ALLE matchende sager med det samme.
+      // 2. Hvis ingen søgning, vis de 10 mest aktive/brugte sager (medmindre 'showAllCases' er slået til via toggle).
+      const totalMatches = filtered.length;
+      let displayCases = filtered;
+
+      if (!query && !showAllCases) {
+        displayCases = filtered.slice(0, 10);
+      }
+
+      renderCasesList(displayCases, totalMatches);
     }
 
     function clearCaseSearch() {
