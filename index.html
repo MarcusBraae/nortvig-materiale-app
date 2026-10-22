@@ -696,40 +696,77 @@
             </div>
           </div>
 
-          <!-- 3. TIDSPUNKT: Store nemme knapper -->
+          <!-- 3. TIDSPUNKT: Store nemme knapper & Fuld frihed til dato/tid -->
           <div>
-            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Hvornår skal det være klar?</label>
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              <button type="button" onclick="setTimePreset('Hurtigst muligt (Strakshold)')"
-                class="time-btn p-2.5 rounded-xl border border-slate-700 bg-slate-800/90 text-left hover:border-[#52A633] transition active:scale-95">
-                <div class="text-[10px] text-red-400 font-bold flex items-center">
-                  <i data-lucide="zap" class="w-3 h-3 mr-1"></i> STRAKS
-                </div>
-                <div class="text-xs font-extrabold text-white mt-0.5">Hurtigst muligt</div>
-              </button>
-              
-              <button type="button" onclick="setTimePreset('I morgen tidlig kl. 07:00')"
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">Hvornår skal det være klar?</label>
+              <span class="text-[11px] text-[#52A633] font-semibold">Standard kl. 06:00</span>
+            </div>
+
+            <!-- Hurtigknapper til presets -->
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" id="time-preset-standard" onclick="setTimePreset('standard')"
                 class="time-btn active border-2 border-[#52A633] bg-[#00864E]/15 p-2.5 rounded-xl text-left transition active:scale-95">
                 <div class="text-[10px] text-[#52A633] font-bold flex items-center">
                   <i data-lucide="sun" class="w-3 h-3 mr-1"></i> STANDARD
                 </div>
-                <div class="text-xs font-extrabold text-white mt-0.5">I morgen kl. 07:00</div>
+                <div id="time-btn-label-standard" class="text-xs font-extrabold text-white mt-0.5 truncate">I morgen kl. 06:00</div>
               </button>
 
-              <button type="button" onclick="setTimePreset('I dag kl. 12:00')"
+              <button type="button" id="time-preset-today-noon" onclick="setTimePreset('today_noon')"
                 class="time-btn p-2.5 rounded-xl border border-slate-700 bg-slate-800/90 text-left hover:border-[#52A633] transition active:scale-95">
                 <div class="text-[10px] text-slate-400 font-bold flex items-center">
                   <i data-lucide="clock" class="w-3 h-3 mr-1"></i> MIDDAG
                 </div>
-                <div class="text-xs font-extrabold text-white mt-0.5">I dag kl. 12:00</div>
+                <div class="text-xs font-extrabold text-white mt-0.5 truncate">I dag kl. 12:00</div>
+              </button>
+
+              <button type="button" id="time-preset-custom" onclick="focusCustomDateTimePicker()"
+                class="time-btn p-2.5 rounded-xl border border-slate-700 bg-slate-800/90 text-left hover:border-[#52A633] transition active:scale-95">
+                <div class="text-[10px] text-slate-400 font-bold flex items-center">
+                  <i data-lucide="calendar" class="w-3 h-3 mr-1"></i> VALGFRI
+                </div>
+                <div class="text-xs font-extrabold text-white mt-0.5 truncate">Vælg dato & tid</div>
               </button>
             </div>
 
-            <!-- Valgt tidspunkt input felt -->
-            <input type="text" id="order-time-custom" required
-              value="I morgen tidlig kl. 07:00"
-              class="mt-2 w-full px-3.5 py-2.5 bg-slate-800/60 border border-slate-700/80 rounded-xl text-xs text-slate-200 focus:border-[#52A633] focus:outline-none">
+            <!-- Interaktiv Datovælger & Tidspunkt -->
+            <div class="mt-2.5 p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/80 space-y-2">
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+                    <i data-lucide="calendar" class="w-3 h-3 mr-1 text-[#52A633]"></i> Vælg dato
+                  </label>
+                  <input type="date" id="order-date-picker" onchange="onCustomDateTimeChanged()"
+                    class="w-full px-2.5 py-2 bg-slate-800/90 border border-slate-700 focus:border-[#52A633] rounded-lg text-xs text-white font-medium focus:outline-none transition">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+                    <i data-lucide="clock" class="w-3 h-3 mr-1 text-[#52A633]"></i> Klokkeslæt
+                  </label>
+                  <input type="time" id="order-time-picker" step="900" onchange="onCustomDateTimeChanged()"
+                    class="w-full px-2.5 py-2 bg-slate-800/90 border border-slate-700 focus:border-[#52A633] rounded-lg text-xs text-white font-medium focus:outline-none transition">
+                </div>
+              </div>
+
+              <!-- Valgt tidspunkt input felt (opdateres automatisk og kan også redigeres frit) -->
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                  Ordretidspunkt (påført ordren):
+                </label>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-[#52A633]">
+                    <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                  </div>
+                  <input type="text" id="order-time-custom" required
+                    value="I morgen kl. 06:00"
+                    oninput="onCustomTextInputChanged()"
+                    placeholder="F.eks.: I morgen kl. 06:00"
+                    class="w-full pl-8 pr-3 py-2 bg-slate-900 border border-slate-700 focus:border-[#52A633] rounded-lg text-xs text-slate-200 font-semibold focus:outline-none">
+                </div>
+              </div>
             </div>
+          </div>
 
             <!-- Right Column: Materialer, Excel & Bestillerinfo -->
             <div class="space-y-4">
@@ -2041,7 +2078,7 @@
       const senderName = order.sender || activeUser.name;
       const sagName = order.case ? `${order.case.number} - ${order.case.name}` : 'A/S Nortvig Byggeplads';
       const address = order.address || (order.case ? order.case.address : 'Byggeplads');
-      const time = order.time || 'Hurtigst muligt';
+      const time = order.time || 'I morgen kl. 06:00 (Standard)';
       const note = order.note ? `\n\nBEMÆRKNING TIL CHAUFFØR / LAGER:\n${order.note}` : '';
 
       const subject = `[BESTILLING] ${sagName} - Ref: ${order.id} - A/S Nortvig`;
@@ -3222,8 +3259,8 @@ Sendt via A/S Nortvig Materiale- & Returportal (Microsoft Graph API)`;
       case: null,
       supplier: null,
       deliveryType: 'plads', // 'plads' or 'afhent' (order) | 'afhent' or 'dropoff' (return)
-      address: DEFAULT_CASES[0].address, 
-      time: 'I morgen tidlig kl. 07:00',
+      address: DEFAULT_CASES[0].address,
+      time: 'I morgen kl. 06:00',
       materials: '',
       estimatedVal: 3400,
       reason: 'Overskydende efter færdiggørelse',
@@ -3890,6 +3927,7 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
       updateHistoryBadge();
       updateEnoBadge();
       initSpeechRecognition();
+      initOrderDateTimePicker();
       lucide.createIcons();
     });
 
@@ -3975,6 +4013,9 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
 
       if (screenId === 'screen-eno') {
         renderEnoScreen();
+      }
+      if (screenId === 'screen-order') {
+        initOrderDateTimePicker();
       }
 
       // Update progress dots
@@ -4361,13 +4402,180 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
       lucide.createIcons();
     }
 
-    function setTimePreset(presetText) {
-      document.getElementById('order-time-custom').value = presetText;
-      
-      document.querySelectorAll('.time-btn').forEach(btn => {
-        btn.className = 'time-btn p-2.5 rounded-xl border border-slate-700 bg-slate-800/90 text-left hover:border-[#52A633] transition active:scale-95';
+    function getNextBusinessDay(date) {
+      const d = new Date(date || new Date());
+      d.setDate(d.getDate() + 1);
+      // Hvis lørdag (6), gå til mandag (+2)
+      if (d.getDay() === 6) d.setDate(d.getDate() + 2);
+      // Hvis søndag (0), gå til mandag (+1)
+      else if (d.getDay() === 0) d.setDate(d.getDate() + 1);
+      return d;
+    }
+
+    function formatDateDK(d) {
+      const ugedage = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
+      const maaneder = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+      const ugedag = ugedage[d.getDay()];
+      const dag = d.getDate();
+      const maaned = maaneder[d.getMonth()];
+      return `${ugedag} d. ${dag}. ${maaned}`;
+    }
+
+    function toISODate(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function initOrderDateTimePicker() {
+      const nextBiz = getNextBusinessDay();
+      const dateInput = document.getElementById('order-date-picker');
+      const timeInput = document.getElementById('order-time-picker');
+      const customInput = document.getElementById('order-time-custom');
+
+      if (dateInput && !dateInput.value) {
+        dateInput.value = toISODate(nextBiz);
+        dateInput.min = toISODate(new Date());
+      }
+      if (timeInput && !timeInput.value) {
+        timeInput.value = '06:00';
+      }
+
+      // Dynamisk label for standardknappen
+      const standardBtnLabel = document.getElementById('time-btn-label-standard');
+      const standardText = `${formatDateDK(nextBiz)} kl. 06:00 (Standard)`;
+      if (standardBtnLabel) {
+        standardBtnLabel.textContent = `${formatDateDK(nextBiz).split(' ')[0]} kl. 06:00`;
+      }
+
+      if (customInput && (!customInput.value || customInput.value.includes('07:00') || customInput.value.includes('Strakshold'))) {
+        customInput.value = standardText;
+        currentFlow.time = standardText;
+      }
+    }
+
+    function setTimePreset(presetType) {
+      const standardBtn = document.getElementById('time-preset-standard');
+      const todayNoonBtn = document.getElementById('time-preset-today-noon');
+      const customBtn = document.getElementById('time-preset-custom');
+      const dateInput = document.getElementById('order-date-picker');
+      const timeInput = document.getElementById('order-time-picker');
+      const customInput = document.getElementById('order-time-custom');
+
+      const resetBtns = () => {
+        [standardBtn, todayNoonBtn, customBtn].forEach(btn => {
+          if (btn) btn.className = 'time-btn p-2.5 rounded-xl border border-slate-700 bg-slate-800/90 text-left hover:border-[#52A633] transition active:scale-95';
+        });
+      };
+
+      resetBtns();
+
+      if (presetType === 'standard' || (typeof presetType === 'string' && presetType.includes('STANDARD'))) {
+        const nextBiz = getNextBusinessDay();
+        if (dateInput) dateInput.value = toISODate(nextBiz);
+        if (timeInput) timeInput.value = '06:00';
+        const formatted = `${formatDateDK(nextBiz)} kl. 06:00 (Standard)`;
+        if (customInput) customInput.value = formatted;
+        currentFlow.time = formatted;
+        if (standardBtn) standardBtn.className = 'time-btn active border-2 border-[#52A633] bg-[#00864E]/15 p-2.5 rounded-xl text-left transition active:scale-95';
+      } else if (presetType === 'today_noon' || (typeof presetType === 'string' && presetType.includes('12:00'))) {
+        const today = new Date();
+        if (dateInput) dateInput.value = toISODate(today);
+        if (timeInput) timeInput.value = '12:00';
+        const formatted = `I dag kl. 12:00 (Middag)`;
+        if (customInput) customInput.value = formatted;
+        currentFlow.time = formatted;
+        if (todayNoonBtn) todayNoonBtn.className = 'time-btn active border-2 border-[#52A633] bg-[#00864E]/15 p-2.5 rounded-xl text-left transition active:scale-95';
+      } else {
+        // Valgfri / custom string
+        if (customInput) customInput.value = presetType;
+        currentFlow.time = presetType;
+        if (customBtn) customBtn.className = 'time-btn active border-2 border-[#52A633] bg-[#00864E]/15 p-2.5 rounded-xl text-left transition active:scale-95';
+      }
+
+      lucide.createIcons();
+    }
+
+    function onCustomDateTimeChanged() {
+      const dateVal = document.getElementById('order-date-picker').value;
+      const timeVal = document.getElementById('order-time-picker').value || '06:00';
+      const customInput = document.getElementById('order-time-custom');
+
+      if (!dateVal) return;
+
+      const [y, m, d] = dateVal.split('-').map(Number);
+      const chosenDate = new Date(y, m - 1, d);
+      const today = new Date();
+      const isToday = today.toDateString() === chosenDate.toDateString();
+
+      const nextBiz = getNextBusinessDay();
+      const isNextBiz = nextBiz.toDateString() === chosenDate.toDateString();
+
+      let text = '';
+      if (isToday) {
+        text = `I dag kl. ${timeVal}`;
+      } else if (isNextBiz && timeVal === '06:00') {
+        text = `${formatDateDK(chosenDate)} kl. 06:00 (Standard)`;
+      } else {
+        text = `${formatDateDK(chosenDate)} kl. ${timeVal}`;
+      }
+
+      customInput.value = text;
+      currentFlow.time = text;
+
+      // Update preset highlight
+      const standardBtn = document.getElementById('time-preset-standard');
+      const todayNoonBtn = document.getElementById('time-preset-today-noon');
+      const customBtn = document.getElementById('time-preset-custom');
+
+      [standardBtn, todayNoonBtn, customBtn].forEach(b => {
+        if (b) b.className = 'time-btn p-2.5 rounded-xl border border-slate-700 bg-slate-800/90 text-left hover:border-[#52A633] transition active:scale-95';
       });
-      event.currentTarget.className = 'time-btn active border-2 border-[#52A633] bg-[#00864E]/15 p-2.5 rounded-xl text-left transition active:scale-95';
+
+      if (isNextBiz && timeVal === '06:00') {
+        if (standardBtn) standardBtn.className = 'time-btn active border-2 border-[#52A633] bg-[#00864E]/15 p-2.5 rounded-xl text-left transition active:scale-95';
+      } else if (isToday && timeVal === '12:00') {
+        if (todayNoonBtn) todayNoonBtn.className = 'time-btn active border-2 border-[#52A633] bg-[#00864E]/15 p-2.5 rounded-xl text-left transition active:scale-95';
+      } else {
+        if (customBtn) customBtn.className = 'time-btn active border-2 border-[#52A633] bg-[#00864E]/15 p-2.5 rounded-xl text-left transition active:scale-95';
+      }
+
+      lucide.createIcons();
+    }
+
+    function onCustomTextInputChanged() {
+      const customInput = document.getElementById('order-time-custom');
+      currentFlow.time = customInput.value;
+
+      const standardBtn = document.getElementById('time-preset-standard');
+      const todayNoonBtn = document.getElementById('time-preset-today-noon');
+      const customBtn = document.getElementById('time-preset-custom');
+
+      [standardBtn, todayNoonBtn, customBtn].forEach(b => {
+        if (b) b.className = 'time-btn p-2.5 rounded-xl border border-slate-700 bg-slate-800/90 text-left hover:border-[#52A633] transition active:scale-95';
+      });
+      if (customBtn) customBtn.className = 'time-btn active border-2 border-[#52A633] bg-[#00864E]/15 p-2.5 rounded-xl text-left transition active:scale-95';
+      lucide.createIcons();
+    }
+
+    function focusCustomDateTimePicker() {
+      const dateInput = document.getElementById('order-date-picker');
+      const customBtn = document.getElementById('time-preset-custom');
+      const standardBtn = document.getElementById('time-preset-standard');
+      const todayNoonBtn = document.getElementById('time-preset-today-noon');
+
+      [standardBtn, todayNoonBtn, customBtn].forEach(b => {
+        if (b) b.className = 'time-btn p-2.5 rounded-xl border border-slate-700 bg-slate-800/90 text-left hover:border-[#52A633] transition active:scale-95';
+      });
+      if (customBtn) customBtn.className = 'time-btn active border-2 border-[#52A633] bg-[#00864E]/15 p-2.5 rounded-xl text-left transition active:scale-95';
+
+      if (dateInput) {
+        dateInput.focus();
+        if (typeof dateInput.showPicker === 'function') {
+          try { dateInput.showPicker(); } catch (e) {}
+        }
+      }
       lucide.createIcons();
     }
 
@@ -5656,7 +5864,7 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
       currentFlow.supplier = draft.supplier;
       currentFlow.materials = draft.materials;
       currentFlow.address = draft.deliveryAddress;
-      currentFlow.time = 'I morgen tidlig kl. 07:00 (Frigivet fra ENO)';
+      currentFlow.time = 'I morgen kl. 06:00 (Frigivet fra ENO)';
       currentFlow.sender = draft.author;
       currentFlow.phone = draft.authorPhone;
       currentFlow.note = draft.note || '';
