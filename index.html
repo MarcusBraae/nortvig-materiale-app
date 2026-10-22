@@ -2156,16 +2156,49 @@ Sendt via A/S Nortvig Materiale- & Returportal (Microsoft Graph API)`;
       const attachments = order.attachments || [];
       if (attachments.length > 0) {
         mailPayload.message.attachments = attachments.map(att => {
-          let base64Content = '';
-          if (att.data && att.data.includes(',')) {
-            base64Content = att.data.split(',')[1];
-          } else if (att.base64) {
-            base64Content = att.base64;
+          let rawData = att.data || att.dataUrl || att.base64 || '';
+
+          // If this is demo Excel without precomputed data, generate real Excel base64 via SheetJS
+          if (!rawData && att.isExcel && att.tableData && window.XLSX) {
+            try {
+              const wb = XLSX.utils.book_new();
+              const ws = XLSX.utils.aoa_to_sheet(att.tableData);
+              XLSX.utils.book_append_sheet(wb, ws, "Materialeliste");
+              rawData = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
+            } catch (exErr) {
+              console.warn('Kunne ikke generere Excel base64 fra tableData:', exErr);
+            }
           }
+
+          let base64Content = '';
+          if (typeof rawData === 'string' && rawData.includes(',')) {
+            base64Content = rawData.split(',')[1];
+          } else if (typeof rawData === 'string') {
+            base64Content = rawData.trim();
+          }
+
+          const fileExt = (att.name || '').split('.').pop().toLowerCase();
+          let mimeType = att.type;
+          if (!mimeType || mimeType === 'application/octet-stream') {
+            if (['xlsx', 'xls'].includes(fileExt) || att.isExcel) {
+              mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+            } else if (fileExt === 'csv') {
+              mimeType = 'text/csv';
+            } else if (fileExt === 'pdf' || att.isPdf) {
+              mimeType = 'application/pdf';
+            } else if (['jpg', 'jpeg'].includes(fileExt)) {
+              mimeType = 'image/jpeg';
+            } else if (fileExt === 'png') {
+              mimeType = 'image/png';
+            } else {
+              mimeType = 'application/octet-stream';
+            }
+          }
+
           return {
             "@odata.type": "#microsoft.graph.fileAttachment",
             name: att.name || 'materialeliste.xlsx',
-            contentType: att.type || (att.isExcel ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "application/octet-stream"),
+            contentType: mimeType,
             contentBytes: base64Content
           };
         }).filter(a => !!a.contentBytes);
@@ -4545,13 +4578,15 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
 
         if (isExcel) {
           reader.onload = (e) => {
+            const dataUrl = e.target.result;
             let extractedItems = [];
             let tableData = [];
 
             try {
               if (window.XLSX) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
+                // Parse workbook from dataURL / base64 or binary string
+                const base64Data = (typeof dataUrl === 'string' && dataUrl.includes(',')) ? dataUrl.split(',')[1] : dataUrl;
+                const workbook = XLSX.read(base64Data, { type: 'base64' });
                 const firstSheetName = workbook.SheetNames[0];
                 const sheet = workbook.Sheets[firstSheetName];
                 tableData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
@@ -4588,10 +4623,10 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
               isImage: false,
               tableData: tableData.length > 0 ? tableData : getDemoTableData(),
               extractedItems: extractedItems,
-              dataUrl: null
+              dataUrl: dataUrl
             });
           };
-          reader.readAsArrayBuffer(file);
+          reader.readAsDataURL(file);
 
         } else if (isImage) {
           reader.onload = (e) => {
@@ -4599,7 +4634,7 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
               id: 'att_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
               name: file.name,
               size: formatFileSize(file.size),
-              type: file.type,
+              type: file.type || 'image/jpeg',
               isExcel: false,
               isPdf: false,
               isImage: true,
@@ -4615,11 +4650,11 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
               id: 'att_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
               name: file.name,
               size: formatFileSize(file.size),
-              type: isPdf ? 'application/pdf' : 'application/octet-stream',
+              type: file.type || (isPdf ? 'application/pdf' : 'application/octet-stream'),
               isExcel: false,
               isPdf: isPdf,
               isImage: false,
-              dataUrl: isPdf ? e.target.result : null
+              dataUrl: e.target.result
             });
           };
           reader.readAsDataURL(file);
@@ -4637,6 +4672,19 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
         'Würth Varmforzinkede beslagskruer 4,8x40mm - 8 pk',
         'BM BMF Vinkelbeslag m/rib 90x90x65mm - 48 stk'
       ];
+      const tableData = getDemoTableData();
+      let demoBase64 = '';
+
+      if (window.XLSX) {
+        try {
+          const wb = XLSX.utils.book_new();
+          const ws = XLSX.utils.aoa_to_sheet(tableData);
+          XLSX.utils.book_append_sheet(wb, ws, "Materialeliste");
+          demoBase64 = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
+        } catch (e) {
+          console.warn('Demo excel generation failed:', e);
+        }
+      }
 
       addAttachmentToFlow({
         id: 'att_demo_excel_' + Date.now(),
@@ -4646,9 +4694,11 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
         isExcel: true,
         isPdf: false,
         isImage: false,
-        tableData: getDemoTableData(),
+        tableData: tableData,
         extractedItems: demoItems,
-        isDemo: true
+        isDemo: true,
+        dataUrl: demoBase64 ? ('data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,' + demoBase64) : null,
+        base64: demoBase64
       });
 
       // Also set helpful default text in materials textarea if empty
