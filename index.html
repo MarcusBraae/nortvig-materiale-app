@@ -50,6 +50,8 @@
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Microsoft MSAL Browser for Azure AD / Microsoft 365 OAuth & Graph API -->
+  <script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
   <!-- SheetJS / XLSX for client-side Excel parsing & preview -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
@@ -223,6 +225,14 @@
       </div>
 
       <div class="flex items-center space-x-2">
+        <!-- Microsoft 365 / Graph Status Indicator -->
+        <button id="m365-status-btn" onclick="handleM365AuthClick()" type="button" title="Microsoft 365 Graph status - Klik for login / skift konto"
+          class="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold active:scale-95 transition bg-slate-800/90 border-slate-700 text-slate-300 hover:border-emerald-500/60">
+          <span id="m365-status-dot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+          <span id="m365-status-text" class="hidden sm:inline">M365: Logger ind...</span>
+          <span id="m365-status-text-mobile" class="sm:hidden">M365</span>
+        </button>
+
         <!-- Aktiv Bruger / Profilvælger (Krav 1) -->
         <div class="relative">
           <button id="user-profile-btn" onclick="toggleUserDropdown()" title="Aktiv brugerprofil - Klik for at skifte"
@@ -597,9 +607,10 @@
             <div id="order-leverandor-icon-box" class="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0 font-bold text-xs">
               BYG
             </div>
-            <div class="overflow-hidden">
+            <div class="overflow-hidden flex-1">
               <div class="text-[10px] text-slate-400 font-semibold uppercase">Modtager</div>
               <div id="order-leverandor-text" class="text-xs font-bold text-white truncate">Bygma</div>
+              <div id="order-leverandor-email-badge" class="text-[10px] text-emerald-400 font-mono truncate">ordre@bygma-aarhus.dk</div>
             </div>
           </div>
         </div>
@@ -1771,13 +1782,335 @@
   <!-- JavaScript Logic -->
   <script>
         // ==========================================
-    // AZURE ENTRA ID / MICROSOFT GRAPH CONFIG
+    // AZURE ENTRA ID / MICROSOFT GRAPH CONFIG & AUTH
     // ==========================================
     const AZURE_CONFIG = {
       clientId: "b90a2ed7-9ba2-4f1e-8d00-a2b3b58ea37e",
       tenantId: "130ca983-a77d-4666-8a72-768d1b90672c",
       redirectUri: window.location.origin
     };
+
+    const GRAPH_SCOPES = ["User.Read", "Mail.Send"];
+
+    let msalInstance = null;
+    let currentMsalAccount = null;
+
+    function initMsal() {
+      if (typeof msal === 'undefined') {
+        console.warn('MSAL library not loaded yet');
+        updateM365StatusUI(null, 'MSAL mangler i browser');
+        return;
+      }
+      try {
+        const msalConfig = {
+          auth: {
+            clientId: AZURE_CONFIG.clientId,
+            authority: `https://login.microsoftonline.com/${AZURE_CONFIG.tenantId}`,
+            redirectUri: AZURE_CONFIG.redirectUri
+          },
+          cache: {
+            cacheLocation: "localStorage",
+            storeAuthStateInCookie: false
+          }
+        };
+        msalInstance = new msal.PublicClientApplication(msalConfig);
+        
+        // Check for cached accounts
+        const accounts = msalInstance.getAllAccounts();
+        if (accounts && accounts.length > 0) {
+          currentMsalAccount = accounts[0];
+          updateM365StatusUI(currentMsalAccount);
+        } else {
+          updateM365StatusUI(null);
+        }
+      } catch (err) {
+        console.error('Kunne ikke initialisere MSAL:', err);
+        updateM365StatusUI(null, 'Fejl ved M365 init');
+      }
+    }
+
+    function updateM365StatusUI(account, errorMsg) {
+      const btn = document.getElementById('m365-status-btn');
+      const dot = document.getElementById('m365-status-dot');
+      const text = document.getElementById('m365-status-text');
+      const textMobile = document.getElementById('m365-status-text-mobile');
+      if (!btn || !dot || !text) return;
+
+      if (account) {
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+        const display = account.username || account.name || 'Forbundet';
+        text.textContent = `M365: ${display}`;
+        if (textMobile) textMobile.textContent = 'M365 ✓';
+        btn.className = 'flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold active:scale-95 transition bg-emerald-950/40 border-emerald-500/40 text-emerald-300 hover:border-emerald-400';
+        btn.title = `Logget ind som ${display} via Microsoft 365. Klik for at skifte konto eller logge ud.`;
+      } else if (errorMsg) {
+        dot.className = 'w-2 h-2 rounded-full bg-red-400';
+        text.textContent = `M365: ${errorMsg}`;
+        if (textMobile) textMobile.textContent = 'M365 !';
+        btn.className = 'flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold active:scale-95 transition bg-red-950/40 border-red-500/40 text-red-300 hover:border-red-400';
+        btn.title = `M365 fejl: ${errorMsg}. Klik for at prøve login igen.`;
+      } else {
+        dot.className = 'w-2 h-2 rounded-full bg-amber-400';
+        text.textContent = 'M365: Log ind';
+        if (textMobile) textMobile.textContent = 'M365 ?';
+        btn.className = 'flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold active:scale-95 transition bg-slate-800/90 border-slate-700 text-amber-300 hover:border-amber-400';
+        btn.title = 'Ikke logget ind med M365. Klik for at logge ind med din @nortvig-as.dk konto.';
+      }
+    }
+
+    async function ensureMsalToken() {
+      if (!msalInstance) {
+        initMsal();
+      }
+      if (!msalInstance) {
+        throw new Error('MSAL kunne ikke indlæses. Tjek internetforbindelsen til Microsoft login.');
+      }
+
+      const activeUser = getActiveUser();
+      const loginHint = activeUser ? activeUser.email : undefined;
+
+      // Check if we have an active account
+      let account = currentMsalAccount;
+      if (!account) {
+        const accounts = msalInstance.getAllAccounts();
+        if (accounts.length > 0) {
+          account = accounts[0];
+          currentMsalAccount = account;
+        }
+      }
+
+      // Try silent token acquisition if we have an account
+      if (account) {
+        try {
+          const silentRes = await msalInstance.acquireTokenSilent({
+            scopes: GRAPH_SCOPES,
+            account: account
+          });
+          currentMsalAccount = silentRes.account || account;
+          updateM365StatusUI(currentMsalAccount);
+          return silentRes.accessToken;
+        } catch (silentErr) {
+          console.warn('acquireTokenSilent fejlede, prøver popup:', silentErr);
+        }
+      }
+
+      // Fallback: interactive popup login
+      updateM365StatusUI(null, 'Åbner login...');
+      try {
+        const loginRes = await msalInstance.loginPopup({
+          scopes: GRAPH_SCOPES,
+          loginHint: loginHint,
+          prompt: 'select_account'
+        });
+        currentMsalAccount = loginRes.account;
+        updateM365StatusUI(currentMsalAccount);
+
+        // Acquire token with acquired account
+        const tokenRes = await msalInstance.acquireTokenSilent({
+          scopes: GRAPH_SCOPES,
+          account: currentMsalAccount
+        });
+        return tokenRes.accessToken;
+      } catch (popupErr) {
+        console.error('loginPopup fejlede:', popupErr);
+        updateM365StatusUI(null, 'Login afbrudt');
+        throw new Error(`Microsoft 365 login fejlede: ${popupErr.message || popupErr}`);
+      }
+    }
+
+    async function handleM365AuthClick() {
+      if (currentMsalAccount) {
+        const confirmLogout = confirm(`Du er logget ind som ${currentMsalAccount.username || currentMsalAccount.name}.\n\nVil du skifte konto eller logge ud?`);
+        if (confirmLogout) {
+          try {
+            await msalInstance.logoutPopup({ account: currentMsalAccount });
+          } catch(e) {
+            localStorage.clear();
+          }
+          currentMsalAccount = null;
+          updateM365StatusUI(null);
+          showToast('Logget ud', 'M365 kontoen er frakoblet.');
+          return;
+        }
+      }
+      try {
+        showToast('Åbner Microsoft Login', 'Vælg venligst din Nortvig Microsoft-konto...');
+        await ensureMsalToken();
+        showToast('M365 Forbundet!', `Logget ind som ${currentMsalAccount.username}`);
+      } catch (err) {
+        alert('M365 Login Fejl:\n' + err.message);
+      }
+    }
+
+    async function sendOrderViaGraph(order) {
+      const accessToken = await ensureMsalToken();
+
+      const recipientEmail = (order.supplier && order.supplier.email) ? order.supplier.email.trim() : '';
+      if (!recipientEmail || !recipientEmail.includes('@')) {
+        throw new Error(`Ugyldig modtagermail for leverandør: "${recipientEmail}". Kontrollér leverandørkartoteket i Admin.`);
+      }
+
+      const activeUser = getActiveUser();
+      const senderName = order.sender || activeUser.name;
+      const sagName = order.case ? `${order.case.number} - ${order.case.name}` : 'A/S Nortvig Byggeplads';
+      const address = order.address || (order.case ? order.case.address : 'Byggeplads');
+      const time = order.time || 'Hurtigst muligt';
+      const note = order.note ? `\n\nBEMÆRKNING TIL CHAUFFØR / LAGER:\n${order.note}` : '';
+
+      const subject = `[BESTILLING] ${sagName} - Ref: ${order.id} - A/S Nortvig`;
+
+      const plainTextContent = 
+`Hej ${order.supplier.name || 'Leverandør'},
+
+Hermed følger bestilling fra A/S Nortvig:
+
+ORDREDETALJER:
+• Ordrereference: ${order.id}
+• Sag: ${sagName}
+• Leveringsmetode: ${order.deliveryType === 'afhent' ? 'Afhentes i butik' : 'Leveres på byggeplads'}
+• Leveringsadresse / Aflæsning: ${address}
+• Ønsket tidspunkt: ${time}
+
+MATERIALER & MÆNGDER:
+${order.materials || '(Se eventuelt vedhæftede filer)'}
+${note}
+
+Bestilt af:
+${senderName}
+Tlf: ${order.phone || activeUser.phone}
+E-mail: ${activeUser.email}
+A/S Nortvig • Fuglevangsvej 47, 8700 Horsens
+
+--
+Sendt via A/S Nortvig Materiale- & Returportal (Microsoft Graph API)`;
+
+      const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; line-height: 1.6; }
+    .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin: 16px 0; }
+    .badge { display: inline-block; background: #00864E; color: #ffffff; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 12px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; background: #ffffff; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; white-space: pre-wrap; font-size: 13px; }
+    .footer { font-size: 12px; color: #64748b; margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 12px; }
+  </style>
+</head>
+<body>
+  <div style="margin-bottom: 12px;">
+    <span class="badge">A/S NORTVIG MATERIALEBESTILLING</span>
+  </div>
+  <p>Hej <strong>${escapeHtml(order.supplier.name)}</strong>,</p>
+  <p>Hermed fremsendes officiel materialebestilling til omgående ekspedition:</p>
+
+  <div class="card">
+    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+      <tr><td style="padding: 4px 0; color: #64748b; width: 140px;"><strong>Ordrereference:</strong></td><td style="padding: 4px 0; font-weight: bold; color: #00864E;">${escapeHtml(order.id)}</td></tr>
+      <tr><td style="padding: 4px 0; color: #64748b;"><strong>Byggesag:</strong></td><td style="padding: 4px 0;"><strong>${escapeHtml(sagName)}</strong></td></tr>
+      <tr><td style="padding: 4px 0; color: #64748b;"><strong>Leveringsmetode:</strong></td><td style="padding: 4px 0;">${order.deliveryType === 'afhent' ? 'Afhentes i butik' : 'Leveres på byggeplads'}</td></tr>
+      <tr><td style="padding: 4px 0; color: #64748b;"><strong>Leveringsadresse:</strong></td><td style="padding: 4px 0;">${escapeHtml(address)}</td></tr>
+      <tr><td style="padding: 4px 0; color: #64748b;"><strong>Klar / leveringstid:</strong></td><td style="padding: 4px 0;"><strong>${escapeHtml(time)}</strong></td></tr>
+    </table>
+  </div>
+
+  <h3 style="margin-top: 16px; margin-bottom: 8px; font-size: 14px; text-transform: uppercase; color: #0f172a;">Materialer & Mængder:</h3>
+  <div class="mono">${escapeHtml(order.materials || '(Se vedhæftede filer)')}</div>
+
+  ${order.note ? `
+  <div style="margin-top: 12px; padding: 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; font-size: 13px;">
+    <strong style="color: #92400e;">Bemærkning til chauffør / pladsen:</strong><br>
+    ${escapeHtml(order.note)}
+  </div>` : ''}
+
+  <p style="margin-top: 18px; font-size: 13px;">
+    <strong>Bestilt af:</strong><br>
+    ${escapeHtml(senderName)}<br>
+    Tlf: ${escapeHtml(order.phone || activeUser.phone)}<br>
+    E-mail: <a href="mailto:${escapeHtml(activeUser.email)}">${escapeHtml(activeUser.email)}</a>
+  </p>
+
+  <div class="footer">
+    A/S Nortvig • Fuglevangsvej 47, 8700 Horsens • CVR: 12345678<br>
+    Afsendt via A/S Nortvig Materialeportal & Microsoft Graph API
+  </div>
+</body>
+</html>`;
+
+      // Build payload
+      const mailPayload = {
+        message: {
+          subject: subject,
+          body: {
+            contentType: "HTML",
+            content: htmlContent
+          },
+          toRecipients: [
+            {
+              emailAddress: {
+                address: recipientEmail,
+                name: order.supplier.name
+              }
+            }
+          ],
+          ccRecipients: [
+            {
+              emailAddress: {
+                address: activeUser.email,
+                name: activeUser.name
+              }
+            }
+          ]
+        },
+        saveToSentItems: true
+      };
+
+      // Optional: attach files if present in order
+      const attachments = order.attachments || [];
+      if (attachments.length > 0) {
+        mailPayload.message.attachments = attachments.map(att => {
+          let base64Content = '';
+          if (att.data && att.data.includes(',')) {
+            base64Content = att.data.split(',')[1];
+          } else if (att.base64) {
+            base64Content = att.base64;
+          }
+          return {
+            "@odata.type": "#microsoft.graph.fileAttachment",
+            name: att.name || 'materialeliste.xlsx',
+            contentType: att.type || (att.isExcel ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "application/octet-stream"),
+            contentBytes: base64Content
+          };
+        }).filter(a => !!a.contentBytes);
+      }
+
+      // Call Graph sendMail
+      const res = await fetch("https://graph.microsoft.com/v1.0/me/sendMail", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(mailPayload)
+      });
+
+      if (!res.ok) {
+        let errDetails = '';
+        try {
+          const errJson = await res.json();
+          errDetails = errJson.error ? `${errJson.error.code}: ${errJson.error.message}` : JSON.stringify(errJson);
+        } catch(e) {
+          errDetails = await res.text();
+        }
+        throw new Error(`Microsoft Graph sendMail fejlede (HTTP ${res.status}): ${errDetails}`);
+      }
+
+      return {
+        success: true,
+        recipient: recipientEmail,
+        orderId: order.id
+      };
+    }
     // ==========================================
     // INITIAL STATE & MOCK DATABASE
     // ==========================================
@@ -3428,6 +3761,7 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
     // ==========================================
     document.addEventListener('DOMContentLoaded', () => {
       initTheme();
+      initMsal();
       filterCases();
       renderSupplierSelectionCards();
       renderUserDropdown();
@@ -3851,6 +4185,8 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
         // Prepare Order Form
         document.getElementById('order-sag-text').textContent = currentFlow.case ? (currentFlow.case.number + ' - ' + currentFlow.case.name) : 'Sag 2401';
         document.getElementById('order-leverandor-text').textContent = sup.name;
+        const emailBadge = document.getElementById('order-leverandor-email-badge');
+        if (emailBadge) emailBadge.textContent = currentFlow.supplier.email;
         setSupplierIcon('order-leverandor-icon-box', sup.name);
         switchScreen('screen-order');
       } else {
@@ -4505,7 +4841,7 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
     // ==========================================
     // STEP 4: SUBMISSION LOGIC (ORDER & RETURN)
     // ==========================================
-    function handleOrderSubmit(e) {
+    async function handleOrderSubmit(e) {
       e.preventDefault();
       const matInput = document.getElementById('order-materials');
       const attachments = currentFlow.attachments || [];
@@ -4517,9 +4853,18 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
         return;
       }
 
+      // Re-read latest supplier from stored suppliers to ensure custom seller/email changes are respected
+      const suppliers = getStoredSuppliers();
+      const supKey = currentFlow.supplier ? currentFlow.supplier.name : 'Bygma';
+      if (suppliers[supKey]) {
+        currentFlow.supplier.email = suppliers[supKey].email || currentFlow.supplier.email;
+        currentFlow.supplier.seller = suppliers[supKey].seller || currentFlow.supplier.seller;
+        currentFlow.supplier.phone = suppliers[supKey].phone || currentFlow.supplier.phone;
+      }
+
       const btn = document.getElementById('submit-order-btn');
       btn.disabled = true;
-      btn.innerHTML = `<i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i><span>SENDER TIL ${currentFlow.supplier.name.toUpperCase()}...</span>`;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i><span>SENDER VIA M365 TIL ${currentFlow.supplier.name.toUpperCase()}...</span>`;
       lucide.createIcons();
 
       currentFlow.materials = document.getElementById('order-materials').value;
@@ -4542,16 +4887,29 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
       currentFlow.id = `NTV-2026-${randomCode}`;
       currentFlow.type = 'order';
 
-      setTimeout(() => {
+      try {
+        // Send real email via Microsoft Graph API
+        await sendOrderViaGraph(currentFlow);
+        currentFlow.sentViaGraph = true;
+        currentFlow.graphSender = currentMsalAccount ? (currentMsalAccount.username || currentMsalAccount.name) : activeUser.email;
+
         saveItemToStorage({ ...currentFlow });
         renderReceipt(currentFlow);
         switchScreen('screen-receipt');
 
         btn.disabled = false;
         btn.innerHTML = `<i data-lucide="send" class="w-6 h-6"></i><span class="tracking-wide">SEND BESTILLING NU</span>`;
-        showToast('Bestilling Afsendt', `Ordre ${currentFlow.id} sendt til ${currentFlow.supplier.name}`);
+        showToast('Bestilling Afsendt via M365!', `Mail sendt til ${currentFlow.supplier.email}`);
         lucide.createIcons();
-      }, 700);
+      } catch (err) {
+        console.error('Ordreafsendelse fejlede:', err);
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="send" class="w-6 h-6"></i><span class="tracking-wide">SEND BESTILLING NU</span>`;
+        lucide.createIcons();
+
+        // Tydelig pop-up / modal med præcis fejlbesked
+        alert(`❌ FEJL VED AFSENDELSE AF BESTILLING VIA MICROSOFT GRAPH:\n\n${err.message}\n\nHvis du ikke har godkendt tilladelser (Mail.Send), bedes du godkende i Microsoft login-vinduet.`);
+      }
     }
 
     function handleReturnSubmit(e) {
@@ -4670,9 +5028,10 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
 
         document.getElementById('receipt-order-id').className = 'text-2xl font-mono font-black text-[#52A633] mt-1 tracking-wider select-all';
 
-        document.getElementById('receipt-action-1-title').textContent = 'Mail afsendt til leverandør:';
+        const senderInfo = item.graphSender ? ` via afsender ${item.graphSender}` : '';
+        document.getElementById('receipt-action-1-title').textContent = 'Mail sendt via Microsoft Graph M365:';
         document.getElementById('receipt-supplier-mail-info').textContent = 
-          `Sendt til ${item.supplier.email} med reference ${item.id} & levering til ${item.address}`;
+          `Sendt til ${item.supplier.email}${senderInfo} med reference ${item.id} & levering til ${item.address}`;
 
         document.getElementById('receipt-action-2-title').textContent = 'E-komplet integration:';
         document.getElementById('receipt-action-2-desc').textContent = 'Oprettet som afventende indkøbsordre på sagsmappen.';
