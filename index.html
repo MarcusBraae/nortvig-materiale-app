@@ -494,6 +494,11 @@
           <button onclick="switchScreen('screen-case')" class="text-xs text-[#52A633] font-semibold hover:underline">Skift</button>
         </div>
 
+        <!-- Trin 2 Prisaftale Status Badge -->
+        <div id="supplier-case-agreement-badge" class="p-3 rounded-2xl bg-slate-800/80 border border-slate-700 text-slate-300 text-xs flex items-center justify-between">
+          <!-- Dynamically populated via updateActiveCaseAgreementBadge() -->
+        </div>
+
         <!-- 4 Big Distinct Supplier Cards (Responsive grid on desktop) -->
         <div id="supplier-cards-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
           
@@ -637,6 +642,11 @@
           </button>
         </div>
 
+        <!-- Trin 3 Prisaftale Status Badge -->
+        <div id="order-case-agreement-badge" class="p-3 rounded-2xl bg-slate-850 border border-slate-700 text-slate-300 text-xs flex items-center justify-between shadow-lg">
+          <!-- Dynamically populated via updateActiveCaseAgreementBadge() -->
+        </div>
+
         <!-- Order Context Header (Sag + Leverandør badge) -->
         <div class="grid grid-cols-2 gap-2 bg-slate-800/90 p-3 rounded-2xl border border-slate-700">
           <div class="flex items-center space-x-2.5 border-r border-slate-700/80 pr-2">
@@ -644,7 +654,12 @@
               <i data-lucide="folder" class="w-4 h-4"></i>
             </div>
             <div class="overflow-hidden">
-              <div class="text-[10px] text-slate-400 font-semibold uppercase">Sag</div>
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] text-slate-400 font-semibold uppercase">Sag</span>
+                <span id="order-sag-price-badge" class="hidden px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 text-[9px] font-black border border-emerald-500/40">
+                  ★ Fast Aftale
+                </span>
+              </div>
               <div id="order-sag-text" class="text-xs font-bold text-white truncate">Sag 2401</div>
             </div>
           </div>
@@ -946,6 +961,43 @@
                   value="+45 22 88 14 00"
                   class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white focus:border-[#52A633] focus:outline-none"
                   oninput="updateActiveUserPreview()">
+              </div>
+            </div>
+
+            <!-- CC / Kopi til medarbejdere -->
+            <div class="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800 space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
+                  <i data-lucide="copy" class="w-3.5 h-3.5 text-blue-400"></i>
+                  <span>CC / Kopi til medarbejdere</span>
+                </span>
+                <span class="text-[10px] text-blue-300 bg-blue-500/20 px-2 py-0.5 rounded font-bold border border-blue-500/30">
+                  <span id="order-cc-count-badge">0 valgt</span>
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-400">
+                Vælg kolleger/tømrere der automatisk skal modtage en kopi af bestillingsmailen via Microsoft 365:
+              </p>
+              
+              <!-- Hurtig-afkrydsning af registrerede medarbejdere -->
+              <div id="order-cc-checkboxes-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                <!-- Populated dynamically via renderOrderCcCheckboxes() -->
+              </div>
+
+              <!-- Frit tekstfelt til ekstra CC-mails -->
+              <div class="pt-1">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                  Ekstra CC e-mails (adskil med komma):
+                </label>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                    <i data-lucide="mail-plus" class="w-3.5 h-3.5"></i>
+                  </div>
+                  <input type="text" id="order-cc-extra-emails"
+                    placeholder="f.eks. makker@nortvig-as.dk, maler@partner.dk"
+                    oninput="updateCcCountBadge()"
+                    class="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-700/80 focus:border-[#52A633] rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none">
+                </div>
               </div>
             </div>
 
@@ -1474,6 +1526,13 @@
             <span>Medarbejdere & Roller</span>
             <span id="admin-tab-user-count" class="px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-300 text-[10px] font-bold border border-slate-700">3</span>
           </button>
+
+          <button id="admin-tab-btn-priceagreements" onclick="switchAdminTab('priceagreements')"
+            class="flex items-center space-x-2 px-4 py-2.5 rounded-xl font-bold text-xs transition text-slate-400 hover:text-white hover:bg-slate-800">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-400"></i>
+            <span>Prisaftaler & Prislister</span>
+            <span id="admin-tab-priceagreements-count" class="px-1.5 py-0.2 rounded-full bg-slate-800 text-emerald-400 text-[10px] font-bold border border-emerald-500/30">0</span>
+          </button>
         </div>
 
         <!-- TAB CONTENT 1: FAKTURA- & KREDITKONTROL -->
@@ -1596,6 +1655,125 @@
               <h4 class="text-xs uppercase tracking-wider font-bold text-slate-400">Registrerede Medarbejdere</h4>
               <div id="admin-users-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 <!-- Rendered dynamically via renderAdminUsers() -->
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- TAB CONTENT 4: PRISAFTALER & PRISLISTER -->
+        <div id="admin-view-priceagreements" class="hidden space-y-5">
+          <div class="bg-slate-850/90 rounded-3xl border border-slate-700/80 p-5 shadow-2xl space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+                  <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h3 class="text-lg font-black text-white">Prisaftaler & Prislister for Byggesager</h3>
+                  <p class="text-xs text-slate-400">Knyt leverandørprislister (.xlsx, .csv) til specifikke byggesager. Priser parses live med SheetJS og gemmes i localStorage til 3-vejs kontrol.</p>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2">
+                <button type="button" onclick="loadDemoPriceAgreement()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs font-semibold active:scale-95 transition flex items-center space-x-1.5">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5 text-emerald-400"></i>
+                  <span>Indlæs demo prisaftale</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Upload & Valg Formular -->
+            <div class="p-5 bg-slate-900 rounded-2xl border border-slate-800 space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                    Vælg Byggesag <span class="text-emerald-400">*</span>
+                  </label>
+                  <select id="pa-select-case" class="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white focus:border-[#52A633] focus:outline-none">
+                    <!-- Populated dynamically via renderPriceAgreementsTab() -->
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                    Vælg Leverandør <span class="text-emerald-400">*</span>
+                  </label>
+                  <select id="pa-select-supplier" class="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white focus:border-[#52A633] focus:outline-none">
+                    <option value="Bygma">Bygma</option>
+                    <option value="STARK">STARK</option>
+                    <option value="XL-BYG">XL-Byg</option>
+                    <option value="Würth">Würth</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Drag and drop zone -->
+              <div id="pa-drop-zone"
+                ondragover="handlePriceFileDragOver(event)"
+                ondragleave="handlePriceFileDragLeave(event)"
+                ondrop="handlePriceFileDrop(event)"
+                onclick="document.getElementById('pa-file-input').click()"
+                class="border-2 border-dashed border-slate-700 hover:border-emerald-500 rounded-2xl p-6 text-center bg-slate-950/60 hover:bg-slate-950/90 transition cursor-pointer space-y-2">
+                <input type="file" id="pa-file-input" accept=".xlsx,.xls,.csv" onchange="handlePriceFileInputChange(event)" class="hidden">
+                <div class="w-12 h-12 mx-auto rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                  <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+                </div>
+                <div>
+                  <div class="text-sm font-bold text-white">Træk og slip Excel-prisfil her, eller <span class="text-emerald-400 underline">klik for at vælge</span></div>
+                  <p class="text-xs text-slate-400 mt-1">Understøtter .xlsx, .xls og .csv (SheetJS parser automatisk varenumre, beskrivelser og aftalte nettopriser)</p>
+                </div>
+              </div>
+
+              <!-- Live Parsed Preview Container (Hidden initially until file parsed) -->
+              <div id="pa-parsed-preview-container" class="hidden space-y-3 pt-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-xs font-bold text-white">Live Parsed Prisaftale: <span id="pa-preview-filename" class="text-emerald-400 font-mono">fil.xlsx</span></span>
+                    <span id="pa-preview-count-badge" class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30">0 varer</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <button type="button" onclick="cancelPendingPriceAgreement()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold active:scale-95 transition">
+                      Annullér
+                    </button>
+                    <button type="button" onclick="savePendingPriceAgreement()" class="px-4 py-1.5 bg-[#00864E] hover:bg-[#52A633] text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-md active:scale-95 transition">
+                      <i data-lucide="save" class="w-3.5 h-3.5"></i>
+                      <span>Gem Prisaftale for sag</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Table Preview -->
+                <div class="max-h-60 overflow-x-auto overflow-y-auto rounded-xl border border-slate-800 bg-slate-950 font-mono text-[11px]">
+                  <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-900 text-slate-400 sticky top-0 border-b border-slate-800">
+                      <tr>
+                        <th class="p-2.5 font-bold">Varenummer</th>
+                        <th class="p-2.5 font-bold">Varebeskrivelse</th>
+                        <th class="p-2.5 font-bold text-right">Aftalt Nettopris (DKK)</th>
+                        <th class="p-2.5 font-bold text-center">Enhed</th>
+                      </tr>
+                    </thead>
+                    <tbody id="pa-preview-table-body" class="divide-y divide-slate-800/60 text-slate-300">
+                      <!-- Rendered dynamically -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Gemte Prisaftaler Oversigt -->
+            <div class="space-y-3 pt-2">
+              <div class="flex items-center justify-between">
+                <h4 class="text-xs uppercase tracking-wider font-bold text-slate-400 flex items-center space-x-2">
+                  <i data-lucide="database" class="w-3.5 h-3.5 text-emerald-400"></i>
+                  <span>Aktive Prisaftaler pr. Byggesag (<span id="pa-total-agreements-count">0</span>)</span>
+                </h4>
+                <button type="button" onclick="clearAllPriceAgreements()" class="text-[11px] text-slate-500 hover:text-red-400 transition">
+                  Nulstil alle aftaler
+                </button>
+              </div>
+              <div id="pa-agreements-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Rendered dynamically via renderPriceAgreementsList() -->
               </div>
             </div>
 
@@ -2161,6 +2339,38 @@ Sendt via A/S Nortvig Materiale- & Returportal (Microsoft Graph API)`;
 </body>
 </html>`;
 
+      // Build CC recipients array: Active user + selected registered employees + extra custom emails
+      const ccList = [];
+      const seenCcEmails = new Set();
+
+      // Always include active user if valid email
+      if (activeUser.email && activeUser.email.includes('@')) {
+        ccList.push({
+          emailAddress: {
+            address: activeUser.email.trim(),
+            name: activeUser.name || 'Afsendende medarbejder'
+          }
+        });
+        seenCcEmails.add(activeUser.email.trim().toLowerCase());
+      }
+
+      // Add additional CCs provided on order
+      if (Array.isArray(order.ccRecipients)) {
+        order.ccRecipients.forEach(item => {
+          const email = (typeof item === 'string' ? item : (item.email || item.address || '')).trim();
+          const name = (typeof item === 'object' && item.name) ? item.name : email;
+          if (email && email.includes('@') && !seenCcEmails.has(email.toLowerCase())) {
+            ccList.push({
+              emailAddress: {
+                address: email,
+                name: name
+              }
+            });
+            seenCcEmails.add(email.toLowerCase());
+          }
+        });
+      }
+
       // Build payload
       const mailPayload = {
         message: {
@@ -2177,14 +2387,7 @@ Sendt via A/S Nortvig Materiale- & Returportal (Microsoft Graph API)`;
               }
             }
           ],
-          ccRecipients: [
-            {
-              emailAddress: {
-                address: activeUser.email,
-                name: activeUser.name
-              }
-            }
-          ]
+          ccRecipients: ccList
         },
         saveToSentItems: true
       };
@@ -3361,6 +3564,7 @@ Sendt via A/S Nortvig Materiale- & Returportal (Microsoft Graph API)`;
       localStorage.setItem('nortvig_app_users_v3', JSON.stringify(users));
       renderAdminUsers();
       renderUserDropdown();
+      renderOrderCcCheckboxes();
       updateActiveUserUI();
     }
 
@@ -3881,14 +4085,16 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
       const viewInvoices = document.getElementById('admin-view-invoices');
       const viewSuppliers = document.getElementById('admin-view-suppliers');
       const viewUsers = document.getElementById('admin-view-users');
+      const viewPriceAgreements = document.getElementById('admin-view-priceagreements');
 
       const btnInvoices = document.getElementById('admin-tab-btn-invoices');
       const btnSuppliers = document.getElementById('admin-tab-btn-suppliers');
       const btnUsers = document.getElementById('admin-tab-btn-users');
+      const btnPriceAgreements = document.getElementById('admin-tab-btn-priceagreements');
 
       // Hide all
-      [viewInvoices, viewSuppliers, viewUsers].forEach(v => { if (v) v.classList.add('hidden'); });
-      [btnInvoices, btnSuppliers, btnUsers].forEach(b => {
+      [viewInvoices, viewSuppliers, viewUsers, viewPriceAgreements].forEach(v => { if (v) v.classList.add('hidden'); });
+      [btnInvoices, btnSuppliers, btnUsers, btnPriceAgreements].forEach(b => {
         if (b) b.className = 'flex items-center space-x-2 px-4 py-2.5 rounded-xl font-bold text-xs transition text-slate-400 hover:text-white hover:bg-slate-800';
       });
 
@@ -3900,6 +4106,10 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
         if (viewUsers) viewUsers.classList.remove('hidden');
         if (btnUsers) btnUsers.className = 'flex items-center space-x-2 px-4 py-2.5 rounded-xl font-bold text-xs transition bg-[#00864E] text-white shadow';
         renderAdminUsers();
+      } else if (tab === 'priceagreements') {
+        if (viewPriceAgreements) viewPriceAgreements.classList.remove('hidden');
+        if (btnPriceAgreements) btnPriceAgreements.className = 'flex items-center space-x-2 px-4 py-2.5 rounded-xl font-bold text-xs transition bg-[#00864E] text-white shadow';
+        renderPriceAgreementsTab();
       } else {
         // invoices
         if (viewInvoices) viewInvoices.classList.remove('hidden');
@@ -3914,6 +4124,600 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
     }
 
     // ==========================================
+    // CC / KOPI TIL MEDARBEJDERE (BESTILLING)
+    // ==========================================
+    function renderOrderCcCheckboxes() {
+      const container = document.getElementById('order-cc-checkboxes-container');
+      if (!container) return;
+      const users = getStoredUsers();
+      const activeUser = getActiveUser();
+
+      // Check existing selected values if any
+      const currentSelected = new Set();
+      const existingCheckboxes = container.querySelectorAll('input[type="checkbox"]:checked');
+      existingCheckboxes.forEach(cb => currentSelected.add(cb.value));
+
+      // If nothing selected yet, default Bo Sandorff if present and not active user
+      const isFirstInit = existingCheckboxes.length === 0 && !container.dataset.initialized;
+      container.dataset.initialized = "true";
+
+      container.innerHTML = users.map(u => {
+        const isSelf = u.id === activeUser.id || (u.email && u.email.toLowerCase() === activeUser.email.toLowerCase());
+        const email = u.email || '';
+        // If Bo Sandorff, pre-check by default if not self
+        const shouldPrecheck = isFirstInit ? (!isSelf && (u.id === 'u_bos' || u.name.includes('Bo Sandorff'))) : currentSelected.has(email);
+
+        return `
+          <label class="flex items-start space-x-2.5 p-2 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 cursor-pointer select-none transition ${isSelf ? 'opacity-50' : ''}">
+            <input type="checkbox" value="${escapeHtml(email)}" data-name="${escapeHtml(u.name)}"
+              ${shouldPrecheck ? 'checked' : ''}
+              ${isSelf ? 'disabled' : ''}
+              onchange="updateCcCountBadge()"
+              class="order-cc-cb mt-0.5 rounded border-slate-700 text-[#00864E] focus:ring-[#52A633] focus:ring-offset-slate-900 h-4 w-4">
+            <div class="overflow-hidden text-xs">
+              <div class="font-bold text-white truncate flex items-center space-x-1">
+                <span>${escapeHtml(u.name)}</span>
+                ${isSelf ? '<span class="text-[9px] text-[#52A633] bg-[#00864E]/20 px-1 py-0.2 rounded font-normal">Dig (Modtager kopi)</span>' : ''}
+              </div>
+              <div class="text-[10px] text-slate-400 truncate">${escapeHtml(email)}</div>
+            </div>
+          </label>
+        `;
+      }).join('');
+
+      updateCcCountBadge();
+    }
+
+    function updateCcCountBadge() {
+      const badge = document.getElementById('order-cc-count-badge');
+      if (!badge) return;
+      const checkedBoxes = document.querySelectorAll('.order-cc-cb:checked');
+      const extraInput = document.getElementById('order-cc-extra-emails');
+      const extraVal = extraInput ? extraInput.value.trim() : '';
+      let extraCount = 0;
+      if (extraVal) {
+        extraCount = extraVal.split(/[,;\s]+/).filter(e => e.includes('@')).length;
+      }
+      const total = checkedBoxes.length + extraCount;
+      badge.textContent = `${total} valgt`;
+    }
+
+    function getSelectedOrderCcRecipients() {
+      const list = [];
+      const checkedBoxes = document.querySelectorAll('.order-cc-cb:checked');
+      checkedBoxes.forEach(cb => {
+        const email = cb.value ? cb.value.trim() : '';
+        const name = cb.getAttribute('data-name') || email;
+        if (email && email.includes('@')) {
+          list.push({ address: email, email: email, name: name });
+        }
+      });
+
+      const extraInput = document.getElementById('order-cc-extra-emails');
+      if (extraInput && extraInput.value.trim()) {
+        const parts = extraInput.value.split(/[,;]+/);
+        parts.forEach(p => {
+          const clean = p.trim();
+          if (clean && clean.includes('@')) {
+            list.push({ address: clean, email: clean, name: clean });
+          }
+        });
+      }
+      return list;
+    }
+
+
+    // ==========================================================================
+    // PRISAFTALER & PRISLISTER (Admin, LocalStorage, SheetJS & Live Validering)
+    // ==========================================================================
+    const PRICE_AGREEMENTS_STORAGE_KEY = 'nortvig_case_price_agreements_v1';
+    let pendingPriceAgreementData = null;
+
+    function getStoredPriceAgreements() {
+      try {
+        const raw = localStorage.getItem(PRICE_AGREEMENTS_STORAGE_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (e) {
+        console.warn('Fejl ved indlæsning af prisaftaler:', e);
+      }
+      return {};
+    }
+
+    function saveStoredPriceAgreements(data) {
+      try {
+        localStorage.setItem(PRICE_AGREEMENTS_STORAGE_KEY, JSON.stringify(data));
+      } catch (e) {
+        console.warn('Fejl ved lagring af prisaftaler:', e);
+      }
+      updatePriceAgreementsBadge();
+      updateActiveCaseAgreementBadge();
+    }
+
+    function getPriceAgreementForCase(caseId) {
+      if (!caseId) return null;
+      const all = getStoredPriceAgreements();
+      return all[caseId] || null;
+    }
+
+    function updatePriceAgreementsBadge() {
+      const all = getStoredPriceAgreements();
+      const count = Object.keys(all).length;
+      const badge = document.getElementById('admin-tab-priceagreements-count');
+      if (badge) badge.textContent = count;
+      const totalCountEl = document.getElementById('pa-total-agreements-count');
+      if (totalCountEl) totalCountEl.textContent = count;
+    }
+
+    function renderPriceAgreementsTab() {
+      populatePriceAgreementCases();
+      renderPriceAgreementsList();
+      updatePriceAgreementsBadge();
+      lucide.createIcons();
+    }
+
+    function populatePriceAgreementCases() {
+      const select = document.getElementById('pa-select-case');
+      if (!select) return;
+      const cases = getStoredCases();
+      const currentSelected = select.value;
+      
+      select.innerHTML = cases.map(c => {
+        const hasAftale = !!getPriceAgreementForCase(c.id);
+        const star = hasAftale ? '★ ' : '';
+        return '<option value="' + c.id + '">' + star + c.number + ' - ' + c.name + '</option>';
+      }).join('');
+
+      if (currentSelected) {
+        select.value = currentSelected;
+      } else if (currentFlow.case) {
+        select.value = currentFlow.case.id;
+      }
+    }
+
+    function handlePriceFileDragOver(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const zone = document.getElementById('pa-drop-zone');
+      if (zone) zone.classList.add('border-emerald-400', 'bg-emerald-950/20');
+    }
+
+    function handlePriceFileDragLeave(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const zone = document.getElementById('pa-drop-zone');
+      if (zone) zone.classList.remove('border-emerald-400', 'bg-emerald-950/20');
+    }
+
+    function handlePriceFileDrop(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const zone = document.getElementById('pa-drop-zone');
+      if (zone) zone.classList.remove('border-emerald-400', 'bg-emerald-950/20');
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        parseUploadedPriceFile(e.dataTransfer.files[0]);
+      }
+    }
+
+    function handlePriceFileInputChange(e) {
+      if (e.target.files && e.target.files.length > 0) {
+        parseUploadedPriceFile(e.target.files[0]);
+        e.target.value = '';
+      }
+    }
+
+    function parseUploadedPriceFile(file) {
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (!['xlsx', 'xls', 'csv'].includes(ext)) {
+        showToast('Ugyldig filtype', 'Vælg venligst en Excel-fil (.xlsx, .xls) eller .csv');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const data = evt.target.result;
+          let workbook;
+          if (ext === 'csv') {
+            workbook = XLSX.read(data, { type: 'string' });
+          } else {
+            workbook = XLSX.read(data, { type: 'binary' });
+          }
+
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+          if (!rawRows || rawRows.length < 2) {
+            showToast('Tom prisfil', 'Excel-arket indeholder ingen vare- eller prisrækker.');
+            return;
+          }
+
+          const parsedItems = extractPriceItemsFromSheet(rawRows);
+          if (parsedItems.length === 0) {
+            showToast('Ingen priser fundet', 'Kunne ikke identificere priser i filen. Kontrollér kolonnerne.');
+            return;
+          }
+
+          pendingPriceAgreementData = {
+            fileName: file.name,
+            fileSize: formatFileSize(file.size),
+            parsedAt: new Date().toISOString(),
+            items: parsedItems
+          };
+
+          showPriceAgreementPreview(pendingPriceAgreementData);
+          showToast('Prisfil indlæst', parsedItems.length + ' aftalte varepriser udtrukket fra ' + file.name + '.');
+        } catch (err) {
+          console.error('Fejl ved parsing af prisfil:', err);
+          showToast('Fejl ved parsing', 'SheetJS kunne ikke læse filen: ' + err.message);
+        }
+      };
+
+      if (ext === 'csv') {
+        reader.readAsText(file, 'UTF-8');
+      } else {
+        reader.readAsBinaryString(file);
+      }
+    }
+
+    function extractPriceItemsFromSheet(rows) {
+      const items = [];
+      const headerRow = rows[0] || [];
+      
+      let itemNoCol = -1;
+      let descCol = -1;
+      let priceCol = -1;
+      let unitCol = -1;
+
+      headerRow.forEach((col, idx) => {
+        const val = String(col || '').toLowerCase().trim();
+        if (itemNoCol === -1 && (val.includes('varenr') || val.includes('vare nr') || val.includes('artikelnr') || val.includes('item') || val.includes('nr') || val.includes('kode'))) {
+          itemNoCol = idx;
+        } else if (descCol === -1 && (val.includes('beskrivelse') || val.includes('tekst') || val.includes('vare') || val.includes('navn') || val.includes('materiale'))) {
+          descCol = idx;
+        } else if (priceCol === -1 && (val.includes('netto') || val.includes('pris') || val.includes('aftale') || val.includes('kost') || val.includes('dkk'))) {
+          priceCol = idx;
+        } else if (unitCol === -1 && (val.includes('enhed') || val.includes('unit') || val.includes('stk') || val.includes('mtr'))) {
+          unitCol = idx;
+        }
+      });
+
+      if (itemNoCol === -1) itemNoCol = 0;
+      if (descCol === -1) descCol = 1;
+      if (priceCol === -1) priceCol = 2;
+      if (unitCol === -1) unitCol = 3;
+
+      for (let r = 1; r < rows.length; r++) {
+        const row = rows[r];
+        if (!row || row.length === 0) continue;
+        
+        const rawItemNo = row[itemNoCol] !== undefined ? String(row[itemNoCol]).trim() : '';
+        const rawDesc = row[descCol] !== undefined ? String(row[descCol]).trim() : '';
+        const rawPrice = row[priceCol];
+        const rawUnit = (unitCol < row.length && row[unitCol] !== undefined) ? String(row[unitCol]).trim() : 'stk';
+
+        let priceNum = 0;
+        if (typeof rawPrice === 'number') {
+          priceNum = rawPrice;
+        } else if (typeof rawPrice === 'string') {
+          const clean = rawPrice.replace(/[^0-9.,]/g, '').replace(',', '.');
+          priceNum = parseFloat(clean) || 0;
+        }
+
+        if (rawDesc || rawItemNo) {
+          items.push({
+            itemNo: rawItemNo || ('V-' + (1000 + r)),
+            desc: rawDesc || ('Materialepost ' + r),
+            price: priceNum,
+            unit: rawUnit || 'stk'
+          });
+        }
+      }
+      return items;
+    }
+
+    function showPriceAgreementPreview(data) {
+      const container = document.getElementById('pa-parsed-preview-container');
+      const filenameEl = document.getElementById('pa-preview-filename');
+      const countEl = document.getElementById('pa-preview-count-badge');
+      const tbody = document.getElementById('pa-preview-table-body');
+
+      if (!container || !tbody) return;
+
+      filenameEl.textContent = data.fileName;
+      countEl.textContent = data.items.length + ' varer indlæst';
+
+      tbody.innerHTML = data.items.slice(0, 50).map(item => `
+        <tr class="hover:bg-slate-900/60 transition">
+          <td class="p-2.5 text-emerald-400 font-bold">${escapeHtml(item.itemNo)}</td>
+          <td class="p-2.5 text-slate-200">${escapeHtml(item.desc)}</td>
+          <td class="p-2.5 text-right font-bold text-white">${item.price.toFixed(2)} DKK</td>
+          <td class="p-2.5 text-center text-slate-400">${escapeHtml(item.unit)}</td>
+        </tr>
+      `).join('');
+
+      container.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function cancelPendingPriceAgreement() {
+      pendingPriceAgreementData = null;
+      const container = document.getElementById('pa-parsed-preview-container');
+      if (container) container.classList.add('hidden');
+      showToast('Annulleret', 'Upload af prisaftale blev afbrudt.');
+    }
+
+    function savePendingPriceAgreement() {
+      if (!pendingPriceAgreementData) {
+        showToast('Mangler fil', 'Upload venligst en Excel-prisfil først.');
+        return;
+      }
+
+      const caseSelect = document.getElementById('pa-select-case');
+      const supplierSelect = document.getElementById('pa-select-supplier');
+
+      const caseId = caseSelect.value;
+      const supplier = supplierSelect.value;
+
+      const cases = getStoredCases();
+      const caseObj = cases.find(c => c.id === caseId) || { id: caseId, number: ('Sag ' + caseId), name: 'Byggesag' };
+
+      const all = getStoredPriceAgreements();
+      all[caseId] = {
+        caseId: caseId,
+        caseNumber: caseObj.number,
+        caseName: caseObj.name,
+        supplier: supplier,
+        fileName: pendingPriceAgreementData.fileName,
+        fileSize: pendingPriceAgreementData.fileSize,
+        uploadedAt: new Date().toLocaleDateString('da-DK', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        itemCount: pendingPriceAgreementData.items.length,
+        items: pendingPriceAgreementData.items
+      };
+
+      saveStoredPriceAgreements(all);
+      pendingPriceAgreementData = null;
+      const preview = document.getElementById('pa-parsed-preview-container');
+      if (preview) preview.classList.add('hidden');
+
+      renderPriceAgreementsList();
+      populatePriceAgreementCases();
+      showToast('Prisaftale Gemt!', all[caseId].itemCount + ' priser tilknyttet ' + caseObj.number + ' (' + supplier + ').');
+    }
+
+    function renderPriceAgreementsList() {
+      const container = document.getElementById('pa-agreements-list');
+      if (!container) return;
+      const all = getStoredPriceAgreements();
+      const keys = Object.keys(all);
+
+      if (keys.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-1 md:col-span-2 p-8 text-center text-slate-500 bg-slate-900/60 rounded-2xl border border-slate-800">
+            <i data-lucide="file-text" class="w-8 h-8 text-slate-600 mx-auto mb-2"></i>
+            <div class="text-sm font-bold text-slate-400">Ingen tilknyttede prisaftaler endnu</div>
+            <p class="text-xs text-slate-500 mt-1">Vælg en sag og leverandør ovenfor, og upload en Excel-fil for at aktivere faste aftalepriser.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = keys.map(k => {
+        const a = all[k];
+        const previewItems = (a.items || []).slice(0, 3);
+        return `
+          <div class="p-4 rounded-2xl bg-slate-900 border border-emerald-500/30 shadow-lg space-y-3">
+            <div class="flex items-start justify-between gap-2 pb-2 border-b border-slate-800">
+              <div>
+                <div class="flex items-center space-x-2">
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-black text-[10px] border border-emerald-500/30 flex items-center space-x-1">
+                    <i data-lucide="check-circle-2" class="w-3 h-3"></i>
+                    <span>Fast Sagskundeaftale</span>
+                  </span>
+                  <span class="text-xs font-bold text-white">${a.supplier}</span>
+                </div>
+                <h5 class="text-sm font-black text-white mt-1.5">${a.caseNumber} - ${a.caseName}</h5>
+                <div class="text-[11px] text-slate-400 mt-0.5 flex items-center space-x-2">
+                  <span>📁 ${a.fileName}</span>
+                  <span>•</span>
+                  <span>${a.itemCount} priser indlæst</span>
+                </div>
+              </div>
+              <div class="flex items-center space-x-1">
+                <button type="button" onclick="downloadPriceAgreement('${k}')" title="Download prisaftale" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition border border-slate-700 active:scale-95">
+                  <i data-lucide="download" class="w-4 h-4"></i>
+                </button>
+                <button type="button" onclick="deletePriceAgreement('${k}')" title="Slet prisaftale" class="p-2 bg-slate-800 hover:bg-red-950/40 text-slate-400 hover:text-red-400 rounded-xl transition border border-slate-700 active:scale-95">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Pris-uddrag tabel -->
+            <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 text-[11px] font-mono space-y-1">
+              <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider pb-1">Uddrag af aftalepriser:</div>
+              ${previewItems.map(it => `
+                <div class="flex items-center justify-between text-slate-300">
+                  <span class="truncate max-w-[200px] text-slate-400">• ${escapeHtml(it.desc || it.itemNo)}</span>
+                  <span class="font-bold text-emerald-400 shrink-0">${it.price.toFixed(2)} DKK /${it.unit}</span>
+                </div>
+              `).join('')}
+              ${(a.items || []).length > 3 ? `<div class="text-[10px] text-slate-500 italic pt-0.5">+ ${a.items.length - 3} yderligere aftaleposter gemt...</div>` : ''}
+            </div>
+
+            <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1">
+              <span>Indlæst: ${a.uploadedAt}</span>
+              <span class="text-[#52A633] font-bold flex items-center"><i data-lucide="shield-check" class="w-3 h-3 mr-1"></i>Aktiv til 3-vejs match</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    function deletePriceAgreement(caseId) {
+      const all = getStoredPriceAgreements();
+      if (!all[caseId]) return;
+      const name = all[caseId].caseNumber;
+      if (confirm('Vil du slette den faste prisaftale for ' + name + '?')) {
+        delete all[caseId];
+        saveStoredPriceAgreements(all);
+        renderPriceAgreementsList();
+        populatePriceAgreementCases();
+        showToast('Prisaftale slettet', 'Aftalen for ' + name + ' er fjernet.');
+      }
+    }
+
+    function clearAllPriceAgreements() {
+      if (confirm('Er du sikker på, at du vil slette alle uploadede prisaftaler?')) {
+        saveStoredPriceAgreements({});
+        renderPriceAgreementsList();
+        populatePriceAgreementCases();
+        showToast('Alle prisaftaler nulstillet', 'Ingen faste prisaftaler er nu aktive.');
+      }
+    }
+
+    function downloadPriceAgreement(caseId) {
+      const all = getStoredPriceAgreements();
+      const a = all[caseId];
+      if (!a || !a.items || a.items.length === 0) {
+        showToast('Ingen data', 'Kunne ikke finde prisaftalen.');
+        return;
+      }
+
+      try {
+        const exportData = a.items.map(it => ({
+          'Varenummer': it.itemNo,
+          'Beskrivelse': it.desc,
+          'Aftalt Nettopris (DKK)': it.price,
+          'Enhed': it.unit,
+          'Sag': a.caseNumber,
+          'Leverandør': a.supplier
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Prisaftale');
+        XLSX.writeFile(wb, 'Prisaftale_' + a.caseNumber.replace(/[^a-zA-Z0-9]/g, '_') + '_' + a.supplier + '.xlsx');
+        showToast('Prisaftale downloadet', 'Excel-fil genereret for ' + a.caseNumber + '.');
+      } catch (err) {
+        console.error('Fejl ved download af prisaftale:', err);
+        showToast('Fejl', 'Kunne ikke oprette Excel-fil: ' + err.message);
+      }
+    }
+
+    function loadDemoPriceAgreement() {
+      const demoItems = [
+        { itemNo: 'WURTH-84920', desc: 'Würth 4,5x60 Terrasseskruer A4 Syrefast', price: 135.00, unit: 'pk' },
+        { itemNo: 'TR-45095', desc: '45x95 C24 Reglar / Konstruktionstræ', price: 16.50, unit: 'm' },
+        { itemNo: 'GIPS-1300', desc: '13mm Fermacell Fibergipsplade 90x250', price: 92.00, unit: 'plade' },
+        { itemNo: 'PE-2050', desc: '0,20mm PE Dampspærrefolie 2x50m', price: 360.00, unit: 'rulle' },
+        { itemNo: 'ISO-95', desc: '95mm Flexibatts A-isolering', price: 175.00, unit: 'pk' },
+        { itemNo: 'SKR-4840', desc: 'Beslagskruer 4,8x40mm Elforzinket', price: 110.00, unit: 'pk' },
+        { itemNo: 'KERT-45260', desc: 'Kerto-S Bjælke 45x260mm', price: 185.00, unit: 'm' }
+      ];
+
+      pendingPriceAgreementData = {
+        fileName: 'Rammeaftale_2026_Nortvig_Hybel.xlsx',
+        fileSize: '18.4 KB',
+        parsedAt: new Date().toISOString(),
+        items: demoItems
+      };
+
+      const caseSelect = document.getElementById('pa-select-case');
+      if (caseSelect) {
+        const found = Array.from(caseSelect.options).find(o => o.value === '6380');
+        if (found) caseSelect.value = '6380';
+      }
+
+      showPriceAgreementPreview(pendingPriceAgreementData);
+      showToast('Demo prisaftale klargjort', 'Klik på "Gem Prisaftale for sag" for at aktivere den for den valgte sag.');
+    }
+
+    function updateActiveCaseAgreementBadge() {
+      const currentCase = currentFlow.case;
+      const caseId = currentCase ? currentCase.id : null;
+      const agreement = getPriceAgreementForCase(caseId);
+
+      // 1. Badge på Trin 2 (screen-supplier)
+      const supplierBadge = document.getElementById('supplier-case-agreement-badge');
+      if (supplierBadge) {
+        if (agreement) {
+          supplierBadge.className = 'mt-2 p-2.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center justify-between';
+          supplierBadge.innerHTML = `
+            <div class="flex items-center space-x-2 truncate">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="truncate">★ Fast Sagskundeaftale aktiv (${agreement.itemCount} priser indlæst fra ${agreement.supplier})</span>
+            </div>
+            <button type="button" onclick="goToAdminTab('priceagreements')" class="ml-2 text-[10px] text-emerald-400 underline hover:text-white shrink-0">Administrér</button>
+          `;
+        } else {
+          supplierBadge.className = 'mt-2 p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-300 text-xs flex items-center justify-between';
+          supplierBadge.innerHTML = `
+            <div class="flex items-center space-x-2 truncate text-slate-400">
+              <i data-lucide="info" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
+              <span class="truncate">Erfaringspriser aktive (ingen fast prisaftale)</span>
+            </div>
+            <button type="button" onclick="goToAdminTab('priceagreements')" class="ml-2 text-[10px] text-[#52A633] font-bold hover:underline shrink-0">Upload prisaftale i Admin</button>
+          `;
+        }
+      }
+
+      // 2. Badge på Trin 3 (screen-order)
+      const orderBadge = document.getElementById('order-case-agreement-badge');
+      if (orderBadge) {
+        if (agreement) {
+          orderBadge.className = 'mb-3 p-3 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center justify-between shadow-lg';
+          orderBadge.innerHTML = `
+            <div class="flex items-center space-x-2.5 truncate">
+              <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+                <i data-lucide="shield-check" class="w-4 h-4"></i>
+              </div>
+              <div class="truncate">
+                <div class="text-white font-extrabold flex items-center space-x-1.5 truncate">
+                  <span class="text-emerald-400">★ Fast Sagskundeaftale aktiv (${agreement.itemCount} priser indlæst)</span>
+                </div>
+                <div class="text-[11px] text-slate-400 truncate">Gælder for ${currentCase.number} hos ${agreement.supplier} (${agreement.fileName})</div>
+              </div>
+            </div>
+            <button type="button" onclick="goToAdminTab('priceagreements')" class="ml-2 px-2.5 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-lg text-[10px] font-bold shrink-0 border border-emerald-500/30">
+              Se Aftale
+            </button>
+          `;
+        } else {
+          orderBadge.className = 'mb-3 p-3 rounded-2xl bg-slate-900/90 border border-slate-700/80 text-slate-300 text-xs flex items-center justify-between';
+          orderBadge.innerHTML = `
+            <div class="flex items-center space-x-2.5 truncate">
+              <div class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/20">
+                <i data-lucide="trending-down" class="w-4 h-4"></i>
+              </div>
+              <div class="truncate">
+                <div class="text-slate-200 font-bold truncate">Erfaringspriser aktive (ingen fast prisaftale)</div>
+                <div class="text-[11px] text-slate-400 truncate">Vejledende priser baseret på historiske indkøb</div>
+              </div>
+            </div>
+            <button type="button" onclick="goToAdminTab('priceagreements')" class="ml-2 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-[#52A633] rounded-lg text-[10px] font-bold shrink-0 border border-slate-700">
+              Upload prisaftale i Admin
+            </button>
+          `;
+        }
+      }
+
+      // Pill i header over sag
+      const sagPill = document.getElementById('order-sag-price-badge');
+      if (sagPill) {
+        if (agreement) {
+          sagPill.classList.remove('hidden');
+          sagPill.textContent = '★ Fast Aftale';
+        } else {
+          sagPill.classList.add('hidden');
+        }
+      }
+      lucide.createIcons();
+    }
+
+    // ==========================================
     // INITIALIZATION
     // ==========================================
     document.addEventListener('DOMContentLoaded', () => {
@@ -3923,7 +4727,10 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
       renderSupplierSelectionCards();
       renderUserDropdown();
       updateActiveUserUI();
+      renderOrderCcCheckboxes();
       renderAdminDashboard();
+      updatePriceAgreementsBadge();
+      updateActiveCaseAgreementBadge();
       updateHistoryBadge();
       updateEnoBadge();
       initSpeechRecognition();
@@ -4229,6 +5036,7 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
       if (returnLoc) returnLoc.value = `${c.address} (Står samlet på europalle ved container)`;
 
       document.getElementById('supplier-screen-case-info').textContent = `${c.number} - ${c.name}`;
+      updateActiveCaseAgreementBadge();
       
       switchScreen('screen-supplier');
     }
@@ -4349,6 +5157,7 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
         const emailBadge = document.getElementById('order-leverandor-email-badge');
         if (emailBadge) emailBadge.textContent = currentFlow.supplier.email;
         setSupplierIcon('order-leverandor-icon-box', sup.name);
+        updateActiveCaseAgreementBadge();
         switchScreen('screen-order');
       } else {
         // Prepare Return Form
@@ -5218,6 +6027,7 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
       currentFlow.sender = document.getElementById('order-sender').value;
       currentFlow.phone = document.getElementById('order-phone').value;
       currentFlow.note = document.getElementById('order-note').value;
+      currentFlow.ccRecipients = getSelectedOrderCcRecipients();
       currentFlow.timestamp = new Date().toISOString();
       const activeUser = getActiveUser();
       currentFlow.signature = generateEmailSignature({
@@ -5643,12 +6453,50 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
       const val = (document.getElementById('order-materials').value || '').toLowerCase();
       if (!container) return;
 
-      if (!val || val.trim().length < 3) {
+      if (!val || val.trim().length < 2) {
         container.innerHTML = '';
         return;
       }
 
-      // Check matching items
+      // 1. Tjek først om der er en fast tilknyttet prisaftale for den valgte sag
+      const currentCase = currentFlow.case;
+      const caseId = currentCase ? currentCase.id : null;
+      const caseAgreement = getPriceAgreementForCase(caseId);
+
+      if (caseAgreement && caseAgreement.items && caseAgreement.items.length > 0) {
+        const matchingAftaleItems = caseAgreement.items.filter(item => {
+          const desc = (item.desc || '').toLowerCase();
+          const itemNo = (item.itemNo || '').toLowerCase();
+          return desc.includes(val) || itemNo.includes(val) || val.split(' ').some(w => w.length > 2 && desc.includes(w));
+        });
+
+        if (matchingAftaleItems.length > 0) {
+          container.innerHTML = matchingAftaleItems.slice(0, 2).map(item => `
+            <div class="p-3 bg-emerald-950/70 border border-emerald-500/50 rounded-2xl flex items-center justify-between text-xs animate-in fade-in duration-200">
+              <div class="flex items-center space-x-2.5 overflow-hidden">
+                <div class="w-7 h-7 rounded-lg bg-emerald-500/30 text-emerald-300 flex items-center justify-center shrink-0">
+                  <i data-lucide="check-check" class="w-4 h-4"></i>
+                </div>
+                <div class="truncate">
+                  <div class="text-white font-bold flex items-center space-x-1.5 truncate">
+                    <span class="truncate">★ Aftalt Sagskundepris: ${item.price.toFixed(2)} DKK / ${escapeHtml(item.unit)}</span>
+                    <span class="px-1.5 py-0.2 bg-emerald-500/30 text-emerald-200 font-black text-[9px] rounded shrink-0">Fast Aftale</span>
+                  </div>
+                  <span class="text-emerald-300/80 text-[11px] block truncate">${escapeHtml(item.desc)} (${escapeHtml(item.itemNo)}) • ${caseAgreement.supplier}</span>
+                </div>
+              </div>
+              <button type="button" onclick="appendMaterialTag('${escapeHtml(item.desc)}')" 
+                class="ml-2 px-2.5 py-1 bg-[#00864E] hover:bg-[#52A633] text-white rounded-lg font-bold text-[10px] shrink-0 active:scale-95 transition">
+                Brug
+              </button>
+            </div>
+          `).join('');
+          lucide.createIcons();
+          return;
+        }
+      }
+
+      // 2. Fallback til generelle erfaringspriser hvis ingen sagsspecifik aftalelinje matcher
       let matched = [];
       for (const [key, item] of Object.entries(erfaPriceCatalog)) {
         if (item.keywords.some(kw => val.includes(kw))) {
@@ -5672,7 +6520,7 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
               <div class="truncate">
                 <div class="text-white font-bold flex items-center space-x-1.5 truncate">
                   <span class="truncate">Vejl. erfaringspris: ca. ${item.lastPurchasePrice.toFixed(2)} DKK / ${item.unit}</span>
-                  <span class="px-1.5 py-0.2 bg-emerald-500/20 text-emerald-300 font-bold text-[9px] rounded shrink-0">-${savingsPct}% aftale</span>
+                  <span class="px-1.5 py-0.2 bg-emerald-500/20 text-emerald-300 font-bold text-[9px] rounded shrink-0">-${savingsPct}% vejledende</span>
                 </div>
                 <span class="text-slate-400 text-[11px] block truncate">Baseret på seneste køb hos ${item.lastSupplier} (${item.lastDate})</span>
               </div>
@@ -5760,6 +6608,7 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
       const deliveryAddress = document.getElementById('order-address').value || currentCase.address;
       const deliveryTime = document.getElementById('order-time-custom').value || 'Efter Nærmere Ordre';
       const note = document.getElementById('order-note').value || '';
+      const ccRecipients = getSelectedOrderCcRecipients();
 
       const draft = {
         id: 'ENO-' + Date.now().toString().slice(-6),
@@ -5773,6 +6622,7 @@ A/S Nortvig • CVR 12345678 • www.nortvig.dk`;
         deliveryAddress: deliveryAddress,
         deliveryTime: deliveryTime,
         note: note,
+        ccRecipients: ccRecipients,
         attachments: currentFlow.attachments || [],
         status: 'Klar til frigivelse (ENO)'
       };
@@ -6216,6 +7066,10 @@ Fuglevangsvej 47, 8700 Horsens`;
     function updateSimulationView() {
       const invoiceBox = document.getElementById('sim-invoice-box');
       const auditResult = document.getElementById('sim-audit-result');
+      const currentCase = currentFlow.case;
+      const agreement = getPriceAgreementForCase(currentCase ? currentCase.id : null);
+      const sagName = currentCase ? `${currentCase.number} - ${currentCase.name}` : 'Sag 2401';
+      const aftaleBadge = agreement ? ` (Verificeret mod ${agreement.itemCount} indlæste aftalepriser fra ${agreement.supplier})` : ' (Verificeret mod fast aftalepris)';
 
       if (simulationScenario === 'error') {
         invoiceBox.className = 'bg-slate-900 p-2.5 rounded-lg font-mono text-[11px] leading-relaxed border border-red-500/50 text-red-200';
@@ -6227,8 +7081,8 @@ Fuglevangsvej 47, 8700 Horsens`;
           <div class="mt-1 text-slate-300">
             Linje 1: 12 pk. Terrasseskruer 4,5x60 à <span class="line-through text-slate-500">145,-</span> <span class="text-red-400 font-bold">195,00 DKK</span>
           </div>
-          <div class="text-slate-400">Rabat: 0% fratrukket (Nortvig aftale 35% mangler)</div>
-          <div class="text-white font-bold mt-1">Fakturabeløb: 2.340,00 DKK (Forventet: 1.450,00 DKK)</div>
+          <div class="text-slate-400">Rabat: 0% fratrukket (Nortvig aftalepris 145,- mangler)</div>
+          <div class="text-white font-bold mt-1">Fakturabeløb: 2.340,00 DKK (Forventet aftalepris: 1.450,00 DKK)</div>
         `;
 
         auditResult.className = 'p-3.5 rounded-xl border border-red-500/60 bg-red-950/40 text-red-200 space-y-2';
@@ -6239,11 +7093,11 @@ Fuglevangsvej 47, 8700 Horsens`;
           </div>
           <p class="text-[11px] text-slate-300 leading-normal">
             Leverandørfaktura overstiger app-bestillingen med <strong class="text-red-400">+890,00 DKK</strong>. 
-            Der er faktureret for 12 pk. (modtaget 10 pk.) og enhedsprisen mangler Nortvigs 35% rammeaftalerabat.
+            Der er faktureret for 12 pk. (modtaget 10 pk.) og enhedsprisen afviger fra den aftalte nettopris.
           </p>
           <div class="bg-slate-900/90 p-2 rounded-lg border border-red-500/30 text-[10px] text-slate-200 font-mono">
-            ⚡ <strong>Automatisk handling:</strong> Faktura sat i bero i E-komplet og tilføjet til Discrepancy Log.
-            Epikur har forberedt 1-klik indsigelse til trælast-sælgeren.
+            ⚡ <strong>Automatisk handling:</strong> Faktura sat i bero i E-komplet mod ${sagName}.
+            Epikur har forberedt 1-klik indsigelse til trælast-sælgeren med reference til sagens faste prisaftale.
           </div>
         `;
       } else {
@@ -6256,7 +7110,7 @@ Fuglevangsvej 47, 8700 Horsens`;
           <div class="mt-1 text-slate-300">
             Linje 1: 10 pk. Terrasseskruer 4,5x60 à 145,00 DKK
           </div>
-          <div class="text-emerald-400">Rabat: 35% Nortvig rammeaftale korrekt fratrukket</div>
+          <div class="text-emerald-400">Aftale: Sagskundeaftale korrekt modregnet på faktura</div>
           <div class="text-white font-bold mt-1">Fakturabeløb: 1.450,00 DKK</div>
         `;
 
@@ -6267,10 +7121,10 @@ Fuglevangsvej 47, 8700 Horsens`;
             <span>PERFEKT 3-VEJS MATCH GODKENDT</span>
           </div>
           <p class="text-[11px] text-slate-300 leading-normal">
-            App-bestilling, fysisk modtaget følgeseddel og elektronisk faktura stemmer 100% overens.
+            App-bestilling, fysisk modtaget følgeseddel og elektronisk faktura stemmer 100% overens${aftaleBadge}.
           </p>
           <div class="bg-slate-900/90 p-2 rounded-lg border border-emerald-500/30 text-[10px] text-slate-200 font-mono">
-            ⚡ <strong>Automatisk handling:</strong> Faktura frigives automatisk til betaling i E-komplet og bogføres direkte på Sag 2401.
+            ⚡ <strong>Automatisk handling:</strong> Faktura frigives automatisk til betaling i E-komplet og bogføres direkte på ${sagName}.
           </div>
         `;
       }
