@@ -1769,31 +1769,869 @@
     // INITIAL STATE & MOCK DATABASE
     // ==========================================
     const DEFAULT_CASES = [
-      { id: "6374", number: "Sag 6374", name: "Fjernvarme Horsens - kontrolrum", type: "Entreprise", address: "Endelavevej 7, 8700 Horsens", manager: "Marcus Dalland Braae", popular: true },
-      { id: "6375", number: "Sag 6375", name: "Fjernvarme Horsens - ekstraarbejder", type: "Entreprise", address: "Endelavevej 7, 8700 Horsens", manager: "Marcus Dalland Braae", popular: true },
-      { id: "6384", number: "Sag 6384", name: "Velux - bygning K tagudskiftning", type: "Entreprise", address: "Ryvej 21, 8752 Østbirk", manager: "Allan V.", popular: true },
-      { id: "6349", number: "Sag 6349", name: "Vesterlund Friplejehjem", type: "Entreprise", address: "Dørkenvej 34, 7323 Give", manager: "Troels Nortvig", popular: true },
-      { id: "6348", number: "Sag 6348", name: "Steel Production - Ny hal", type: "Entreprise", address: "Islandsvej 25, 8700 Horsens", manager: "Marcus Dalland Braae", popular: true },
-      { id: "6336", number: "Sag 6336", name: "SØP Horsens - ny politistation", type: "Entreprise", address: "Holmboes Allé 2, 8700 Horsens", manager: "Allan V.", popular: true },
-      { id: "6297", number: "Sag 6297", name: "Samlingspunktet - Gamle Rådhus", type: "Entreprise", address: "Søndergade 26, 8700 Horsens", manager: "Marcus Dalland Braae", popular: true },
-      { id: "6381", number: "Sag 6381", name: "Facaderenovering Østerhåbsskolen", type: "Entreprise", address: "Østerhåbvej 85, 8700 Horsens", manager: "Allan V.", popular: true },
-      { id: "6393", number: "Sag 6393", name: "Havnen Horsens - gipsvægge og døre", type: "Entreprise", address: "Nordhavnsvej 1, 8700 Horsens", manager: "Marcus Dalland Braae", popular: true },
-      { id: "6397", number: "Sag 6397", name: "Jem og fix Hobro - hegn", type: "Entreprise", address: "Søndergade 10, 9500 Hobro", manager: "Marcus Dalland Braae", popular: true },
-      { id: "3058", number: "Sag 3058", name: "Vesterlund - indbrud 1", type: "Service", address: "Fuglevangsvej 47, 8700 Horsens", manager: "Troels Nortvig", popular: true },
-      { id: "3057", number: "Sag 3057", name: "Flegmade 24 - køkkenbordplade fastgøres", type: "Service", address: "Flegmade 24, 7100 Vejle", manager: "FG", popular: false },
-      { id: "3056", number: "Sag 3056", name: "Dansk Retursystem - 1 års gennemgang", type: "Service", address: "Fabersvej 15, 7500 Holstebro", manager: "Allan V.", popular: false },
-      { id: "3054", number: "Sag 3054", name: "Sikavej 30 - utæt tag/vandskade indvendig", type: "Service", address: "Sikavej 30, 7160 Tørring", manager: "Allan V.", popular: false },
-      { id: "3053", number: "Sag 3053", name: "Fængslet Horsens - loftsalen rep loft", type: "Service", address: "Fussingsvej 8, 8700 Horsens", manager: "Marcus Dalland Braae", popular: false },
-      { id: "3052", number: "Sag 3052", name: "Roesgaard - oliering af bordplader", type: "Service", address: "Sønderbrogade 16, 8700 Horsens", manager: "Thomas Nortvig", popular: false },
-      { id: "3046", number: "Sag 3046", name: "Bjerrevej - maling af skur", type: "Service", address: "Fuglevangsvej 47, 8700 Horsens", manager: "Marcus Dalland Braae", popular: false },
-      { id: "3039", number: "Sag 3039", name: "MSCH Copenhagen - Truckværn og rep facade", type: "Service", address: "Artvej 1, 7100 Vejle", manager: "Marcus Dalland Braae", popular: false }
-    ];
+  {
+    "id": "6398",
+    "number": "Sag 6398",
+    "name": "Jem og fix Hobro - hegn - ekstra arbejde",
+    "type": "Entreprise",
+    "address": "Søndergade 10, 9500 Hobro",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "6397",
+    "number": "Sag 6397",
+    "name": "Jem og fix Hobro - hegn",
+    "type": "Entreprise",
+    "address": "Søndergade 10, 9500 Hobro",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "6396",
+    "number": "Sag 6396",
+    "name": "Heibæk - Station SFE",
+    "type": "Entreprise",
+    "address": "Provstlund Skovvej 6, 8700 Horsens",
+    "manager": "Troels Nortvig",
+    "popular": true
+  },
+  {
+    "id": "6395",
+    "number": "Sag 6395",
+    "name": "Forum Horsens - udsk. gulve - ekstra",
+    "type": "Entreprise",
+    "address": "Langgade 2, 8700 Horsens",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "6394",
+    "number": "Sag 6394",
+    "name": "Havnen, Horsens - nye gipsvægge, lofter og døre - ekstra",
+    "type": "Entreprise",
+    "address": "Nordhavnsvej 1, 8700 Horsens",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "6393",
+    "number": "Sag 6393",
+    "name": "Havnen, Horsens - nye gipsvægge, lofter og døre",
+    "type": "Entreprise",
+    "address": "Nordhavnsvej 1, 8700 Horsens",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "6392",
+    "number": "Sag 6392",
+    "name": "Dagnæsskole musik og bevægelse - ekstra",
+    "type": "Entreprise",
+    "address": "Bjerrevej 54, 8700 Horsens",
+    "manager": "Troels Nortvig",
+    "popular": true
+  },
+  {
+    "id": "6391",
+    "number": "Sag 6391",
+    "name": "Dagnæsskole musik og bevægelse",
+    "type": "Entreprise",
+    "address": "Bjerrevej 54, 8700 Horsens",
+    "manager": "Troels Nortvig",
+    "popular": true
+  },
+  {
+    "id": "6390",
+    "number": "Sag 6390",
+    "name": "Forum Horsens - udsk. gulv",
+    "type": "Entreprise",
+    "address": "Langgade 2, 8700 Horsens",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "6389",
+    "number": "Sag 6389",
+    "name": "Carporte Hyldehegnet etape 2 - Ekstraarbejde",
+    "type": "Entreprise",
+    "address": "Hyldehegnet, 8700 Horsens",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "6388",
+    "number": "Sag 6388",
+    "name": "Carporte Hyldehegnet etape 2",
+    "type": "Entreprise",
+    "address": "Hyldehegnet, 8700 Horsens",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "6387",
+    "number": "Sag 6387",
+    "name": "Frellsen - ekstra",
+    "type": "Entreprise",
+    "address": "Industrivej 14, 4000 Roskilde",
+    "manager": "Troels Nortvig",
+    "popular": false
+  },
+  {
+    "id": "6386",
+    "number": "Sag 6386",
+    "name": "Frellsen",
+    "type": "Entreprise",
+    "address": "Industrivej 14, 4000 Roskilde",
+    "manager": "Troels Nortvig",
+    "popular": false
+  },
+  {
+    "id": "6385",
+    "number": "Sag 6385",
+    "name": "Velux - bygning K tagudskiftning - ekstra",
+    "type": "Entreprise",
+    "address": "Ryvej 21, 8752 Østbirk",
+    "manager": "Allan V.",
+    "popular": false
+  },
+  {
+    "id": "6384",
+    "number": "Sag 6384",
+    "name": "Velux - bygning K tagudskiftning",
+    "type": "Entreprise",
+    "address": "Ryvej 21, 8752 Østbirk",
+    "manager": "Allan V.",
+    "popular": false
+  },
+  {
+    "id": "6382",
+    "number": "Sag 6382",
+    "name": "Facaderenovering Østerhåbsskolen - Ekstraarbejde",
+    "type": "Entreprise",
+    "address": "Østerhåbvej 85, 8700 Horsens",
+    "manager": "Allan V.",
+    "popular": true
+  },
+  {
+    "id": "6381",
+    "number": "Sag 6381",
+    "name": "Facaderenovering Østerhåbsskolen",
+    "type": "Entreprise",
+    "address": "Østerhåbvej 85, 8700 Horsens",
+    "manager": "Allan V.",
+    "popular": true
+  },
+  {
+    "id": "6380",
+    "number": "Sag 6380",
+    "name": "Carporte Hyldehegnet - Hybel",
+    "type": "Entreprise",
+    "address": "Ove Jensens Allé 35D, 8700 Horsens",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "6379",
+    "number": "Sag 6379",
+    "name": "Holmsø Horsens - tømrerarbejde - Ekstraarbejde",
+    "type": "Entreprise",
+    "address": "Silkeborgvej 150, 8700 Horsens",
+    "manager": "Brian S. A.",
+    "popular": false
+  },
+  {
+    "id": "6378",
+    "number": "Sag 6378",
+    "name": "Holmsø Horsens - tømrerarbejde",
+    "type": "Entreprise",
+    "address": "Silkeborgvej 150, 8700 Horsens",
+    "manager": "Brian S. A.",
+    "popular": false
+  },
+  {
+    "id": "6375",
+    "number": "Sag 6375",
+    "name": "Fjernvarme Horsens - om og tilbygning kontrolrum - ekstraarbejde",
+    "type": "Entreprise",
+    "address": "Endelavevej 7, 8700 Horsens",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "6374",
+    "number": "Sag 6374",
+    "name": "Fjernvarme Horsens - om og tilbygning kontrolrum",
+    "type": "Entreprise",
+    "address": "Endelavevej 7, 8700 Horsens",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "6367",
+    "number": "Sag 6367",
+    "name": "Egelundsparken Beder - Bytømreren - Ekstra",
+    "type": "Entreprise",
+    "address": "Egelundsparken, 8330 Beder",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "6366",
+    "number": "Sag 6366",
+    "name": "Egelundsparken Beder - Bytømreren",
+    "type": "Entreprise",
+    "address": "Egelundsparken, 8330 Beder",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "6350",
+    "number": "Sag 6350",
+    "name": "Vesterlund Friplejehjem - ekstra",
+    "type": "Entreprise",
+    "address": "Dørkenvej 34, 7323 Give",
+    "manager": "Troels Nortvig",
+    "popular": false
+  },
+  {
+    "id": "6349",
+    "number": "Sag 6349",
+    "name": "Vesterlund Friplejehjem",
+    "type": "Entreprise",
+    "address": "Dørkenvej 34, 7323 Give",
+    "manager": "Troels Nortvig",
+    "popular": false
+  },
+  {
+    "id": "6337",
+    "number": "Sag 6337",
+    "name": "SØP Horsens - ny politistation - Ekstraarbejde",
+    "type": "Entreprise",
+    "address": "Holmboes Allé 2, 8700 Horsens",
+    "manager": "Allan V.",
+    "popular": false
+  },
+  {
+    "id": "6336",
+    "number": "Sag 6336",
+    "name": "SØP Horsens - ny politistation",
+    "type": "Entreprise",
+    "address": "Holmboes Allé 2, 8700 Horsens",
+    "manager": "Allan V.",
+    "popular": false
+  },
+  {
+    "id": "6324",
+    "number": "Sag 6324",
+    "name": "Sorring Friplejehjem",
+    "type": "Entreprise",
+    "address": "Bredsig 24K, 8641 Sorring",
+    "manager": "Troels Nortvig",
+    "popular": false
+  },
+  {
+    "id": "6298",
+    "number": "Sag 6298",
+    "name": "Samlingspunktet Horsens - Det gamle rådhus - Ekstra arbejde",
+    "type": "Entreprise",
+    "address": "Sivmosevænget 4, 5260 Odense S",
+    "manager": "Brian S. A.",
+    "popular": false
+  },
+  {
+    "id": "6297",
+    "number": "Sag 6297",
+    "name": "Samlingspunktet Horsens - Det gamle rådhus",
+    "type": "Entreprise",
+    "address": "Søndergade 26, 8700 Horsens",
+    "manager": "Brian S. A.",
+    "popular": false
+  },
+  {
+    "id": "3057",
+    "number": "Sag 3057",
+    "name": "Flegmade 24, 4.mf. - køkkenbordplade fastgøres",
+    "type": "Entreprise",
+    "address": "Flegmade 24, 4.mf, 8700 Horsens",
+    "manager": "FG",
+    "popular": false
+  },
+  {
+    "id": "3056",
+    "number": "Sag 3056",
+    "name": "Dansk Retursystem - udbedring - 1 års gennemgang",
+    "type": "Entreprise",
+    "address": "Fabersvej 15, 7500 Holstebro",
+    "manager": "Allan V.",
+    "popular": false
+  },
+  {
+    "id": "3055",
+    "number": "Sag 3055",
+    "name": "Flegmade 22, 3.mf. - vindue i soveværelse sidder løst",
+    "type": "Entreprise",
+    "address": "Flegmade 22, 3.mf, 8700 Horsens",
+    "manager": "FG",
+    "popular": false
+  },
+  {
+    "id": "3054",
+    "number": "Sag 3054",
+    "name": "Sikavej 30 - utæt tag/vandskade indvendig",
+    "type": "Entreprise",
+    "address": "Sikavej 30, 7160 Tørring",
+    "manager": "Allan V.",
+    "popular": false
+  },
+  {
+    "id": "3053",
+    "number": "Sag 3053",
+    "name": "Fængslet Horsens - loftsalen - rep loft",
+    "type": "Entreprise",
+    "address": "Industriområdet 5, 8732 Hovedgård",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "3052",
+    "number": "Sag 3052",
+    "name": "Roesgaard - oliering af bordplader",
+    "type": "Entreprise",
+    "address": "Sønderbrogade 16, 8700 Horsens",
+    "manager": "Troels Nortvig",
+    "popular": false
+  },
+  {
+    "id": "3051",
+    "number": "Sag 3051",
+    "name": "Flegmade 40, 5.th. - udskiftning af revnet rude",
+    "type": "Entreprise",
+    "address": "Flegmade 40, 5.th, 8700 Horsens",
+    "manager": "FG",
+    "popular": false
+  },
+  {
+    "id": "3049",
+    "number": "Sag 3049",
+    "name": "Børnehave Silkeborgvej 145 - opsætning på stuer",
+    "type": "Entreprise",
+    "address": "Børnehave Silkeborgvej 145, 8700 Horsens",
+    "manager": "FG",
+    "popular": false
+  },
+  {
+    "id": "3047",
+    "number": "Sag 3047",
+    "name": "Dansk retur system - dobbeltdør justering",
+    "type": "Entreprise",
+    "address": "Fuglevangsvej 47, 8700 Horsens",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "3046",
+    "number": "Sag 3046",
+    "name": "Bjerrevej - maling af skur",
+    "type": "Entreprise",
+    "address": "Fuglevangsvej 47, 8700 Horsens",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "3045",
+    "number": "Sag 3045",
+    "name": "Holger Danskes Vej 13 - gangbro 2 stk.",
+    "type": "Entreprise",
+    "address": "Holger Danskes Vej 13, 8700 Horsens",
+    "manager": "Troels Nortvig",
+    "popular": false
+  },
+  {
+    "id": "3044",
+    "number": "Sag 3044",
+    "name": "Buchwalds Bro 13, 3.th. - altandør hænger voldsomt",
+    "type": "Entreprise",
+    "address": "Buchwalds Bro 13, 3.th, 2100 Horsens",
+    "manager": "FG",
+    "popular": false
+  },
+  {
+    "id": "3042",
+    "number": "Sag 3042",
+    "name": "Nyt terrassedørs greb - Lærkereden",
+    "type": "Entreprise",
+    "address": "co. Ejendomscenteret i Favrskov kommune, Torvegade 7, 8450 Hammel, 1000 København K",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "3040",
+    "number": "Sag 3040",
+    "name": "Buchwalds Bro 5, 5. tv. - altandør er skæv og skal rettes",
+    "type": "Entreprise",
+    "address": "Buchwalds Bro 5, 5. tv, 2100 Horsens",
+    "manager": "FG",
+    "popular": false
+  },
+  {
+    "id": "3039",
+    "number": "Sag 3039",
+    "name": "Truckværn og rep af facade",
+    "type": "Entreprise",
+    "address": "Artvej 1, 7100 Vejle",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "3037",
+    "number": "Sag 3037",
+    "name": "1 års gennemgang MOSS CPH",
+    "type": "Entreprise",
+    "address": "Fuglevangsvej 47, 8700 Horsens",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "3034",
+    "number": "Sag 3034",
+    "name": "Bjerrevej 168 - nyt glas",
+    "type": "Entreprise",
+    "address": "Bjerrevej 168, 8700 Horsens",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "3031",
+    "number": "Sag 3031",
+    "name": "Sønderbrogade 14 - branddør",
+    "type": "Entreprise",
+    "address": "Sønderbrogade 14, 8700 Horsens",
+    "manager": "Troels Nortvig",
+    "popular": false
+  },
+  {
+    "id": "3030",
+    "number": "Sag 3030",
+    "name": "Rådhustorvet - nye lofter B&B trapper",
+    "type": "Entreprise",
+    "address": "Rosenkrantzvej 2, 8700 Horsens",
+    "manager": "Brian S. A.",
+    "popular": false
+  },
+  {
+    "id": "3029",
+    "number": "Sag 3029",
+    "name": "Søndergade 46 - tætningsliste dør",
+    "type": "Entreprise",
+    "address": "Søndergade 46, 8700 Horsens",
+    "manager": "Troels Nortvig",
+    "popular": false
+  },
+  {
+    "id": "3028",
+    "number": "Sag 3028",
+    "name": "Emilies Plads 2A, 5. 4 - køkkenskab er faldet af og defekt",
+    "type": "Entreprise",
+    "address": "Emilies Plads 2A, 5. 4, 8700 Horsens",
+    "manager": "FG",
+    "popular": false
+  },
+  {
+    "id": "3027",
+    "number": "Sag 3027",
+    "name": "Flegmade 42, 3.mf. vandindtrængen",
+    "type": "Entreprise",
+    "address": "Flegmade 42, 3.mf, 8700 Horsens",
+    "manager": "Allan V.",
+    "popular": false
+  },
+  {
+    "id": "3026",
+    "number": "Sag 3026",
+    "name": "B&B hotel - lofter i restaurant",
+    "type": "Entreprise",
+    "address": "Rosenkrantzvej 2, 8700 Horsens",
+    "manager": "Brian S. A.",
+    "popular": false
+  },
+  {
+    "id": "3025",
+    "number": "Sag 3025",
+    "name": "Flegmade 24, 3.th. - vandskade opvaskemaskine i køkkenskab",
+    "type": "Entreprise",
+    "address": "Flegmade 24, 3.th, 8700 Horsens",
+    "manager": "FG",
+    "popular": false
+  },
+  {
+    "id": "3024",
+    "number": "Sag 3024",
+    "name": "Grafisk Forum - loftplade",
+    "type": "Entreprise",
+    "address": "Fuglevangsvej 47, 1., 8700 Horsens",
+    "manager": "Troels Nortvig",
+    "popular": false
+  },
+  {
+    "id": "3023",
+    "number": "Sag 3023",
+    "name": "Grafisk Forum - rep. dør",
+    "type": "Entreprise",
+    "address": "Fuglevangsvej 47B, 8700 Horsens",
+    "manager": "Troels Nortvig",
+    "popular": false
+  },
+  {
+    "id": "3019",
+    "number": "Sag 3019",
+    "name": "Torvet 24 Vinduer, altan og sedum",
+    "type": "Entreprise",
+    "address": "Torvet 24, 8700 Horsens",
+    "manager": "Troels Nortvig",
+    "popular": false
+  },
+  {
+    "id": "3017",
+    "number": "Sag 3017",
+    "name": "Emilies Plads 2B,. 3. 2 - lukkemekaniske altandør/stormkrog",
+    "type": "Entreprise",
+    "address": "Emilies Plads 2B, 8700 Horsens",
+    "manager": "FG",
+    "popular": false
+  },
+  {
+    "id": "3016",
+    "number": "Sag 3016",
+    "name": "Roesgaard - ophæng",
+    "type": "Entreprise",
+    "address": "Sønderbrogade 16, 8700 Horsens",
+    "manager": "Troels Nortvig",
+    "popular": false
+  },
+  {
+    "id": "3014",
+    "number": "Sag 3014",
+    "name": "Horsens Brand - efterisolering hal - Endelavevej 14",
+    "type": "Entreprise",
+    "address": "Rådhustorvet 4, 8700 Horsens",
+    "manager": "Brian S. A.",
+    "popular": false
+  },
+  {
+    "id": "3007",
+    "number": "Sag 3007",
+    "name": "Buchwalds Bro 9, 5.th. - defekt låsemekanisme på altandør",
+    "type": "Entreprise",
+    "address": "Buchwalds Bro 9, 5.th, 2100 Horsens",
+    "manager": "FG",
+    "popular": false
+  },
+  {
+    "id": "3005",
+    "number": "Sag 3005",
+    "name": "Hattingvej 5 - justering dør Jacobsen Plus",
+    "type": "Entreprise",
+    "address": "Hattingvej 5, 8700 Horsens",
+    "manager": "Allan V.",
+    "popular": false
+  },
+  {
+    "id": "3004",
+    "number": "Sag 3004",
+    "name": "Buchwalds Bro 7, 1.th. - udskiftning 2 stk. sprængt altanværn",
+    "type": "Entreprise",
+    "address": "Buchwalds Bro 7, 1.th, 2100 Horsens",
+    "manager": "FG",
+    "popular": false
+  },
+  {
+    "id": "3003",
+    "number": "Sag 3003",
+    "name": "Emilies Plads 2B, 6. 2 - vindue kan ikke åbnes",
+    "type": "Entreprise",
+    "address": "Emilies Plads 2B, 6. 2, 8700 Horsens",
+    "manager": "FG",
+    "popular": false
+  },
+  {
+    "id": "3001",
+    "number": "Sag 3001",
+    "name": "Flegmade 38, 1.tv. - soveværelse vindue dør kan ikke låse",
+    "type": "Entreprise",
+    "address": "Flegmade 38, 1.tv, 8700 Horsens",
+    "manager": "FG",
+    "popular": false
+  },
+  {
+    "id": "2998",
+    "number": "Sag 2998",
+    "name": "Buchwalds Bro 4, 3. 3 - udskiftning af krakkeleret altanværn",
+    "type": "Entreprise",
+    "address": "Buchwalds Bro 4, 3. 3, 2100 Horsens",
+    "manager": "FG",
+    "popular": false
+  },
+  {
+    "id": "2995",
+    "number": "Sag 2995",
+    "name": "Sandbjerg strandvej 5. 7130 Juelsminde",
+    "type": "Entreprise",
+    "address": "Sandbjerg strandvej 5, 7130 Juelsminde",
+    "manager": "FG",
+    "popular": false
+  },
+  {
+    "id": "2991",
+    "number": "Sag 2991",
+    "name": "Sct. Ibs Skole - udskiftning vindue",
+    "type": "Entreprise",
+    "address": "Kildegade 18, 8700 Horsens",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "2990",
+    "number": "Sag 2990",
+    "name": "Plantagen 8, Horsens - Vandskade, demontering af gulv",
+    "type": "Entreprise",
+    "address": "Plantagen 8, 8732 Hovedgård",
+    "manager": "FG",
+    "popular": false
+  },
+  {
+    "id": "2989",
+    "number": "Sag 2989",
+    "name": "Init Fuglevangsvej 45 - vinduer/døre",
+    "type": "Entreprise",
+    "address": "Init Fuglevangsvej 45, 8700 Horsens",
+    "manager": "Troels Nortvig",
+    "popular": false
+  },
+  {
+    "id": "2977",
+    "number": "Sag 2977",
+    "name": "Strandpromenaden 14",
+    "type": "Entreprise",
+    "address": "Strandpromenaden 14, 8700 Horsens",
+    "manager": "Troels Nortvig",
+    "popular": false
+  },
+  {
+    "id": "2974",
+    "number": "Sag 2974",
+    "name": "Efterrep Fuglevangsvej",
+    "type": "Entreprise",
+    "address": "Fuglevangsvej 47, 1., 8700 Horsens",
+    "manager": "Troels Nortvig",
+    "popular": false
+  },
+  {
+    "id": "2973",
+    "number": "Sag 2973",
+    "name": "Havnen 1 - reparation af vinduer",
+    "type": "Entreprise",
+    "address": "Havnen 1, 8700 Horsens",
+    "manager": "Troels Nortvig",
+    "popular": false
+  },
+  {
+    "id": "2936",
+    "number": "Sag 2936",
+    "name": "Vitus Berings Plads 1 - vinduesliste",
+    "type": "Entreprise",
+    "address": "Vitus Berings Plads 1, 8700 Horsens",
+    "manager": "Troels Nortvig",
+    "popular": false
+  },
+  {
+    "id": "2895",
+    "number": "Sag 2895",
+    "name": "Septembervej 10 - Vandskade",
+    "type": "Entreprise",
+    "address": "Septembervej 10, 8700 Horsens",
+    "manager": "FG",
+    "popular": false
+  },
+  {
+    "id": "1970",
+    "number": "Sag 1970",
+    "name": "Sommerhus, Lyravej 17, Dejret - materialer",
+    "type": "Entreprise",
+    "address": "Lyravej 17, 8700 Horsens",
+    "manager": "Troels Nortvig",
+    "popular": false
+  },
+  {
+    "id": "220",
+    "number": "Sag 220",
+    "name": "Køb af arbejdstøj",
+    "type": "Worksheet / Spjæld",
+    "address": "Ove Jensens Alle 31I, 8700 Horsens",
+    "manager": "THA",
+    "popular": false
+  },
+  {
+    "id": "175",
+    "number": "Sag 175",
+    "name": "Hvid plade biler",
+    "type": "Worksheet / Spjæld",
+    "address": "Ove Jensens Alle 31I, 8700 Horsens",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "172",
+    "number": "Sag 172",
+    "name": "Papegøje plade biler",
+    "type": "Worksheet / Spjæld",
+    "address": "Ove Jensens Alle 31I, 8700 Horsens",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "170",
+    "number": "Sag 170",
+    "name": "Gul plade biler",
+    "type": "Worksheet / Spjæld",
+    "address": "Ove Jensens Alle 31I, 8700 Horsens",
+    "manager": "THA",
+    "popular": false
+  },
+  {
+    "id": "165",
+    "number": "Sag 165",
+    "name": "Materiel",
+    "type": "Worksheet / Spjæld",
+    "address": "Ove Jensens Alle 31I, 8700 Horsens",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "160",
+    "number": "Sag 160",
+    "name": "Værksted",
+    "type": "Worksheet / Spjæld",
+    "address": "Ove Jensens Alle 31I, 8700 Horsens",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "155",
+    "number": "Sag 155",
+    "name": "Administration",
+    "type": "Worksheet / Spjæld",
+    "address": "S\nLund Børnehus - Silkeborgvej 145, 8700 Horsens",
+    "manager": "Marcus Dalland Braae",
+    "popular": true
+  },
+  {
+    "id": "145",
+    "number": "Sag 145",
+    "name": "Møder på kontoret",
+    "type": "Worksheet / Spjæld",
+    "address": "Ove Jensens Alle 31I, 8700 Horsens",
+    "manager": "Troels Nortvig",
+    "popular": false
+  },
+  {
+    "id": "140",
+    "number": "Sag 140",
+    "name": "Kursus",
+    "type": "Worksheet / Spjæld",
+    "address": "Ove Jensens Alle 31I, 8700 Horsens",
+    "manager": "THA",
+    "popular": false
+  },
+  {
+    "id": "120",
+    "number": "Sag 120",
+    "name": "G-dage",
+    "type": "Worksheet / Spjæld",
+    "address": "Ove Jensens Alle 31I, 8700 Horsens",
+    "manager": "THA",
+    "popular": false
+  },
+  {
+    "id": "110",
+    "number": "Sag 110",
+    "name": "Fædre- og forældreorlov",
+    "type": "Worksheet / Spjæld",
+    "address": "Ove Jensens Alle 31I, 8700 Horsens",
+    "manager": "THA",
+    "popular": false
+  },
+  {
+    "id": "108",
+    "number": "Sag 108",
+    "name": "Helligdage funktionærer",
+    "type": "Worksheet / Spjæld",
+    "address": "Fuglevangsvej 47, 8700 Horsens",
+    "manager": "THA",
+    "popular": false
+  },
+  {
+    "id": "107",
+    "number": "Sag 107",
+    "name": "Feriedage funktionærer",
+    "type": "Worksheet / Spjæld",
+    "address": "Fuglevangsvej 47, 8700 Horsens",
+    "manager": "THA",
+    "popular": false
+  },
+  {
+    "id": "106",
+    "number": "Sag 106",
+    "name": "Feriefridage funktionærer",
+    "type": "Worksheet / Spjæld",
+    "address": "Ove Jensens Alle 31I, 8700 Horsens",
+    "manager": "THA",
+    "popular": false
+  },
+  {
+    "id": "105",
+    "number": "Sag 105",
+    "name": "Feriefridage lærlinge",
+    "type": "Worksheet / Spjæld",
+    "address": "Ove Jensens Alle 31I, 8700 Horsens",
+    "manager": "THA",
+    "popular": false
+  },
+  {
+    "id": "104",
+    "number": "Sag 104",
+    "name": "SH-timer lærlige",
+    "type": "Worksheet / Spjæld",
+    "address": "Ove Jensens Alle 31I, 8700 Horsens",
+    "manager": "THA",
+    "popular": false
+  },
+  {
+    "id": "103",
+    "number": "Sag 103",
+    "name": "Skole",
+    "type": "Worksheet / Spjæld",
+    "address": "Ove Jensens Alle 31I, 8700 Horsens",
+    "manager": "Allan V.",
+    "popular": false
+  },
+  {
+    "id": "102",
+    "number": "Sag 102",
+    "name": "Ferie/fri for egen regning",
+    "type": "Worksheet / Spjæld",
+    "address": "Ove Jensens Alle 31I, 8700 Horsens",
+    "manager": "THA",
+    "popular": false
+  }
+];
 
     // MEDARBEJDERE & PROFILER (Krav 1)
     const DEFAULT_USERS = [
-      { id: 'u1', name: 'Marcus Dalland Braae', title: 'Projektleder', phone: '+45 22 88 14 00', email: 'mdb@nortvig.dk', role: 'Projektleder', active: true },
-      { id: 'u2', name: 'Mikkel H.', title: 'Tømrer & Byggeformand', phone: '+45 28 44 91 10', email: 'mh@nortvig.dk', role: 'Formand', active: false },
-      { id: 'u3', name: 'Henrik P.', title: 'Tømrersvend', phone: '+45 21 33 55 70', email: 'hp@nortvig.dk', role: 'Svend', active: false }
+      { id: 'u1', name: 'Marcus Dalland Braae', title: 'Projektleder', phone: '+45 22 88 14 00', email: 'mba@nortvig-as.dk', role: 'Projektleder', active: true },
+      { id: 'u_bos', name: 'Bo Sandorff', title: 'Projektleder / Formand', phone: '+45 20 80 50 10', email: 'bos@nortvig-as.dk', role: 'Projektleder', active: false },
+      { id: 'u2', name: 'Mikkel H.', title: 'Tømrer & Byggeformand', phone: '+45 28 44 91 10', email: 'mh@nortvig-as.dk', role: 'Formand', active: false },
+      { id: 'u3', name: 'Henrik P.', title: 'Tømrersvend', phone: '+45 21 33 55 70', email: 'hp@nortvig-as.dk', role: 'Svend', active: false }
     ];
 
     // FAST TRÆLAST- & LEVERANDØRKARTOTEK (Krav 3)
@@ -1942,15 +2780,15 @@
     // ==========================================
     function getStoredUsers() {
       try {
-        const data = localStorage.getItem('nortvig_app_users_v2');
+        const data = localStorage.getItem('nortvig_app_users_v3');
         if (data) return JSON.parse(data);
       } catch(e) {}
-      localStorage.setItem('nortvig_app_users_v2', JSON.stringify(DEFAULT_USERS));
+      localStorage.setItem('nortvig_app_users_v3', JSON.stringify(DEFAULT_USERS));
       return DEFAULT_USERS;
     }
 
     function saveStoredUsers(users) {
-      localStorage.setItem('nortvig_app_users_v2', JSON.stringify(users));
+      localStorage.setItem('nortvig_app_users_v3', JSON.stringify(users));
       renderAdminUsers();
       renderUserDropdown();
       updateActiveUserUI();
