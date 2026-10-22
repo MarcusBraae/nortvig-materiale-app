@@ -50,8 +50,53 @@
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Microsoft MSAL Browser for Azure AD / Microsoft 365 OAuth & Graph API -->
-  <script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+  <!-- Microsoft MSAL Browser with multi-CDN fallback loader -->
+  <script>
+    (function() {
+      const msalCdns = [
+        'https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js',
+        'https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js',
+        'https://alcdn.msauth.net/browser/2.38.2/js/msal-browser.min.js'
+      ];
+      let currentCdnIndex = 0;
+
+      function loadScript(src) {
+        return new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = src;
+          s.async = false;
+          s.onload = () => {
+            const hasMsal = (typeof window.msal !== 'undefined') || (typeof window.PublicClientApplication !== 'undefined');
+            if (hasMsal) {
+              resolve();
+            } else {
+              reject(new Error('MSAL object not defined after script load: ' + src));
+            }
+          };
+          s.onerror = () => reject(new Error('Network error loading: ' + src));
+          document.head.appendChild(s);
+        });
+      }
+
+      window.__msalLoadPromise = (async function tryLoadMsal() {
+        while (currentCdnIndex < msalCdns.length) {
+          const cdn = msalCdns[currentCdnIndex++];
+          try {
+            await loadScript(cdn);
+            console.log('[MSAL] Indlæst succesfuldt via:', cdn);
+            if (typeof window.initMsal === 'function') {
+              try { window.initMsal(); } catch(e) { console.warn('[MSAL] initMsal callback fejl:', e); }
+            }
+            return true;
+          } catch (err) {
+            console.warn('[MSAL] Kunne ikke indlæse fra ' + cdn + ':', err);
+          }
+        }
+        console.error('[MSAL] Alle CDN kilder fejlede.');
+        return false;
+      })();
+    })();
+  </script>
   <!-- SheetJS / XLSX for client-side Excel parsing & preview -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
@@ -1784,10 +1829,21 @@
         // ==========================================
     // AZURE ENTRA ID / MICROSOFT GRAPH CONFIG & AUTH
     // ==========================================
+    function getCleanRedirectUri() {
+      // Sørg for at redirectUri matcher præcist uanset om der er hash/query, eller sti (/ eller /index.html)
+      const loc = window.location;
+      // F.eks. https://marcusbraae.github.io/nortvig-materiale-app/ eller https://marcusbraae.github.io/
+      let url = loc.origin + loc.pathname;
+      // Træk filnavn som index.html fra hvis nødvendigt, eller behold base path
+      return url;
+    }
+
     const AZURE_CONFIG = {
       clientId: "b90a2ed7-9ba2-4f1e-8d00-a2b3b58ea37e",
       tenantId: "130ca983-a77d-4666-8a72-768d1b90672c",
-      redirectUri: window.location.origin
+      get redirectUri() {
+        return getCleanRedirectUri();
+      }
     };
 
     const GRAPH_SCOPES = ["User.Read", "Mail.Send"];
@@ -1795,12 +1851,34 @@
     let msalInstance = null;
     let currentMsalAccount = null;
 
-    function initMsal() {
-      if (typeof msal === 'undefined') {
+    function getMsalConstructor() {
+      if (typeof window.msal !== 'undefined' && typeof window.msal.PublicClientApplication === 'function') {
+        return window.msal.PublicClientApplication;
+      }
+      if (typeof window.PublicClientApplication === 'function') {
+        return window.PublicClientApplication;
+      }
+      return null;
+    }
+
+    async function initMsal() {
+      let MsalConstructor = getMsalConstructor();
+
+      if (!MsalConstructor && window.__msalLoadPromise) {
+        try {
+          await window.__msalLoadPromise;
+          MsalConstructor = getMsalConstructor();
+        } catch (e) {
+          console.warn('[MSAL] Afventning af script indlæsning fejlede:', e);
+        }
+      }
+
+      if (!MsalConstructor) {
         console.warn('MSAL library not loaded yet');
         updateM365StatusUI(null, 'MSAL mangler i browser');
-        return;
+        return false;
       }
+
       try {
         const msalConfig = {
           auth: {
@@ -1813,7 +1891,14 @@
             storeAuthStateInCookie: false
           }
         };
-        msalInstance = new msal.PublicClientApplication(msalConfig);
+
+        if (!msalInstance) {
+          msalInstance = new MsalConstructor(msalConfig);
+          // For MSAL 2.x+, initialiser hvis funktionen findes
+          if (typeof msalInstance.initialize === 'function') {
+            await msalInstance.initialize();
+          }
+        }
         
         // Check for cached accounts
         const accounts = msalInstance.getAllAccounts();
@@ -1823,9 +1908,11 @@
         } else {
           updateM365StatusUI(null);
         }
+        return true;
       } catch (err) {
         console.error('Kunne ikke initialisere MSAL:', err);
         updateM365StatusUI(null, 'Fejl ved M365 init');
+        return false;
       }
     }
 
@@ -1860,7 +1947,7 @@
 
     async function ensureMsalToken() {
       if (!msalInstance) {
-        initMsal();
+        await initMsal();
       }
       if (!msalInstance) {
         throw new Error('MSAL kunne ikke indlæses. Tjek internetforbindelsen til Microsoft login.');
